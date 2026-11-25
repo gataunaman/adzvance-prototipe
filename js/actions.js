@@ -15,6 +15,7 @@
     if (v === 'siswa') { S().me = 'rizky'; S().dev = false; A.go('#beranda'); }
     else if (v === 'admin') { S().me = S().students.find(function (s) { return s.ketua; }).id; S().dev = false; A.go('#admin'); }
     else if (v === 'dev') { S().me = null; S().dev = true; A.go('#dev'); }
+    else if (v === 'publik') { S().me = null; S().dev = false; A.go('#home'); }
     else { S().me = null; S().dev = false; A.go('#masuk'); }
     return false;
   };
@@ -71,10 +72,23 @@
       '<div class="field"><span class="label">Bukti pendaftaran (opsional)</span><label class="dropzone">' + ic('upload') + '<span data-fill="fname">Pilih file (JPG, PNG, PDF)</span><input type="file" name="proof" accept="image/*,.pdf" data-act="file-name" hidden></label></div><p class="small muted">OSIS memeriksa bukti ini sebelum namamu masuk rekap.</p>', 'join:' + l.id, 'Konfirmasi');
     return false;
   };
-  FORM.join = function (f, id) { (S().joined[S().me] = S().joined[S().me] || {})[id] = { result: 'Terdaftar', proof: !!(f.elements['proof'] && f.elements['proof'].files.length) }; A.audit('Siswa ikut lomba', A.lomba(id).title); A.toast('Tercatat. Semoga sukses!'); return true; };
-  ACT.unjoin = function (el) { delete (S().joined[S().me] || {})[el.dataset.id]; A.toast('Dibatalkan'); };
+  function lvl(l) { return l === 'Kabupaten' || l === 'Kota' ? 'Kabupaten/Kota' : l; }
+  FORM.join = function (f, id) {
+    var l = A.lomba(id), team = f.elements['as'].value === 'team' && f.elements['team'] ? byId(S().teams, f.elements['team'].value) : null;
+    var e = { id: A.uid('e'), lomba: l.id, title: l.title, org: l.org, cat: l.cat, level: lvl(l.level), ladder: !!l.ladder, who: team ? team.members.slice() : [S().me], result: 'Terdaftar', status: 'joined' };
+    S().entries.push(e); addedNotice(e, e.who);
+    A.audit('Siswa ikut lomba', l.title); A.toast('Tercatat. Semoga sukses!'); return true;
+  };
+  ACT.unjoin = function (el) { S().entries = S().entries.filter(function (e) { return e.id !== el.dataset.id; }); A.toast('Dibatalkan'); };
+  ACT['entry-leave'] = function (el) { var e = entry(el.dataset.id); e.who = e.who.filter(function (id) { return id !== S().me; }); A.toast('Kamu keluar dari tim ini'); };
   ACT['file-name'] = function () {};
-  ACT['fame-from'] = function (el) { var l = A.lomba(el.dataset.id), j = S().joined[S().me][l.id]; fameSheet(j.result, l.title); return false; };
+  ACT.result = function (el) {
+    var e = entry(el.dataset.id), v = el.value;
+    if (A.resInfo(v).wall) { entrySheet(e, v); return false; } // a win goes to OSIS with proof
+    e.result = v; e.status = 'joined';
+    A.toast(v === 'Terdaftar' ? 'Disimpan' : 'Tersimpan. Hanya kamu dan timmu yang melihat ini.');
+  };
+  ACT['view-lomba-go'] = function (el) { A.ui.viewLomba = el.dataset.id; A.go('#lomba-detail'); return false; };
 
   ACT['suggest-lomba'] = function () {
     A.sheet('Usulkan lomba', '<div class="field"><label for="sg-title">Nama lomba</label><input class="input" id="sg-title" name="title" required></div><div class="field"><label for="sg-org">Penyelenggara</label><input class="input" id="sg-org" name="org" required></div><div class="field"><label for="sg-link">Tautan info</label><input class="input" id="sg-link" name="link" placeholder="https://"></div><div class="field"><label for="sg-cat">Kategori</label><select class="input" id="sg-cat" name="cat">' + opt(Object.keys(S().cats).map(function (k) { return [k, S().cats[k].name]; })) + '</select></div><p class="small muted">Tampil setelah disetujui admin OSIS.</p>', 'suggest', 'Kirim usulan');
@@ -155,22 +169,89 @@
     S().reports.unshift({ id: A.uid('rp'), kind: 'forum', thread: t.id, reply: r.id, where: t.title, by: S().me, text: r.body, status: 'open' }); A.toast('Dilaporkan ke admin'); return false;
   };
 
-  /* ---------- wall of fame ---------- */
-  function fameSheet(rank, title) {
-    A.sheet('Ajukan prestasi', '<div class="field"><label for="fm-t">Nama lomba</label><input class="input" id="fm-t" name="title" required value="' + esc(title || '') + '"></div><div class="field"><label for="fm-r">Hasil</label><select class="input" id="fm-r" name="rank">' + opt(['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Medali emas', 'Medali perak', 'Medali perunggu', 'Finalis'], rank) + '</select></div>' +
-      '<div class="field"><span class="label">Bukti (sertifikat atau piagam)</span><label class="dropzone">' + ic('upload') + '<span data-fill="fname">Pilih file</span><input type="file" name="proof" accept="image/*,.pdf" data-act="file-name" hidden></label></div><p class="small muted">Tampil di Wall of Fame dan profilmu setelah disetujui admin OSIS.</p>', 'fame', 'Kirim');
+  /* ---------- results and the Wall of Fame ---------- */
+  function entry(id) { return byId(S().entries, id); }
+  function drop(name, label, accept) { return '<label class="dropzone">' + ic('upload') + '<span data-fill="fname">' + label + '</span><input type="file" name="' + name + '" accept="' + accept + '" data-act="file-name" hidden></label>'; }
+  function wins(ladder) { return Object.keys(A.RESULTS).filter(function (r) { var i = A.RESULTS[r]; return i.wall && (!i.ladder || ladder); }); }
+  function studentPicks(who, lockMe) {
+    return '<div class="checkgrid">' + S().students.filter(function (s) { return s.active; }).map(function (s) {
+      var mine = s.id === S().me && lockMe;
+      return '<label class="check"><input type="checkbox" name="who" value="' + s.id + '"' + (who.indexOf(s.id) !== -1 || mine ? ' checked' : '') + (mine ? ' disabled' : '') + '>' + esc(s.name) + '</label>';
+    }).join('') + '</div>';
   }
-  ACT['new-fame'] = function () { fameSheet(); return false; };
-  FORM.fame = function (f) {
-    var r = f.elements['rank'].value, cls = /1|emas/.test(r) ? 'gold' : /2|perak/.test(r) ? 'silver' : /3|perunggu/.test(r) ? 'bronze' : 'final';
-    var file = f.elements['proof'].files[0];
-    S().fame.push({ id: A.uid('w'), rank: r, rcls: cls, title: f.elements['title'].value, who: [S().me], date: A.dateAt(0).split(' ').slice(1).join(' '), status: 'pending', proof: file ? file.name : 'bukti.pdf' });
-    A.toast('Terkirim ke admin OSIS untuk disetujui'); return true;
+  function compFields(e) {
+    return '<div class="field"><label for="en-t">Nama lomba</label><input class="input" id="en-t" name="title" required value="' + esc(e.title || '') + '"></div>' +
+      '<div class="grid-2"><div class="field"><label for="en-o">Penyelenggara</label><input class="input" id="en-o" name="org" required value="' + esc(e.org || '') + '"></div><div class="field"><label for="en-c">Kategori</label><select class="input" id="en-c" name="cat">' + opt(Object.keys(S().cats).map(function (k) { return [k, S().cats[k].name]; }), e.cat) + '</select></div></div>' +
+      '<div class="field"><label for="en-l">Tingkat</label><select class="input" id="en-l" name="level">' + opt(A.LEVELS, e.level) + '</select></div>' +
+      '<label class="check"><input type="checkbox" name="ladder"' + (e.ladder ? ' checked' : '') + '>Lomba berjenjang (OSN, FLS2N, O2SN, LKS)</label>';
+  }
+  function resultFields(e, res, ladderKnown) {
+    return '<div class="grid-2"><div class="field"><label for="en-r">Hasil</label><select class="input" id="en-r" name="result">' + opt(wins(ladderKnown ? e.ladder : true), res) + '</select></div>' +
+      '<div class="field"><label for="en-a">Nama penghargaan</label><input class="input" id="en-a" name="award" value="' + esc(e.award || '') + '" placeholder="Untuk penghargaan khusus"></div></div>';
+  }
+  /* one sheet for: a win on a competition the student joined, a past/unlisted achievement, and fixing what OSIS asked for */
+  function entrySheet(e, res) {
+    var isNew = !e; e = e || { who: [S().me], level: 'Kabupaten/Kota' };
+    var body = (isNew ? compFields(e) : '<p class="muted">' + esc(e.title) + ', ' + esc(e.level) + '</p>') + resultFields(e, res || (A.isWin(e) ? e.result : 'Juara 1'), !isNew) +
+      (e.note ? '<p class="joinbox__note">' + esc(e.note) + '</p>' : '') +
+      '<div class="field"><span class="label">Tim (Adzkia)</span>' + studentPicks(e.who, true) + '</div>' +
+      '<div class="field"><label for="en-x">Anggota dari sekolah lain (opsional)</label><input class="input" id="en-x" name="ext" value="' + esc(e.ext || '') + '" placeholder="Contoh: Budi (SMA Negeri 1 Medan)"></div>' +
+      '<div class="field"><label for="en-p">Bukti: tautan pengumuman resmi</label><input class="input" id="en-p" name="link" value="' + esc(e.proofLink || '') + '" placeholder="Instagram sekolah atau penyelenggara, situs lomba"></div>' +
+      '<div class="field"><span class="label">atau tangkapan layar pengumuman' + (e.proofFile ? ' (sudah ada: ' + esc(e.proofFile) + ')' : '') + '</span>' + drop('proof', 'Pilih gambar', 'image/*,.pdf') + '</div>' +
+      '<div class="grid-2"><div class="field"><span class="label">Sertifikat (opsional)</span>' + drop('cert', 'Bisa menyusul', 'image/*,.pdf') + '</div><div class="field"><span class="label">Foto bersama (opsional)</span>' + drop('photo', 'JPG atau PNG, maks. 2 MB', 'image/png,image/jpeg') + '</div></div>' +
+      '<p class="small muted">Cukup satu bukti. Setelah disetujui OSIS, tampil publik di Wall of Fame dan di profil semua anggota tim.</p>';
+    A.sheet(isNew ? 'Tambah prestasi' : 'Kirim hasil ke OSIS', body, 'entry:' + (isNew ? 'new' : e.id), 'Kirim ke OSIS');
+  }
+  function addedNotice(e, ids) {
+    ids.filter(function (id) { return id !== S().me; }).forEach(function (id) {
+      A.notify(id, { icon: 'user-plus', tone: 'tek', text: (me() ? me().name : 'OSIS') + ' menambahkanmu ke tim: ' + e.title + '. Bukan timmu? Buka dan pilih "Bukan timku".', href: e.lomba ? '#lomba-detail' : '#profil-edit', lomba: e.lomba });
+    });
+  }
+  function checkedWho(f) { return Array.prototype.slice.call(f.querySelectorAll('[name=who]:checked')).map(function (c) { return c.value; }); }
+  ACT['new-fame'] = function () { entrySheet(null); return false; };
+  ACT['entry-open'] = function (el) { entrySheet(entry(el.dataset.id)); return false; };
+  FORM.entry = function (f, id) {
+    var e = id === 'new' ? null : entry(id), link = f.elements['link'].value.trim(), proof = f.elements['proof'].files[0];
+    var res = f.elements['result'].value, ladder = e ? e.ladder : f.elements['ladder'].checked;
+    if (!link && !proof && !(e && (e.proofLink || e.proofFile))) { A.toast('Tambahkan tautan atau tangkapan layar'); return false; }
+    if (A.resInfo(res).ladder && !ladder) { A.toast('"Lolos ke tingkat berikutnya" hanya untuk lomba berjenjang'); return false; }
+    if (!e) { e = { id: A.uid('e'), title: f.elements['title'].value.trim(), org: f.elements['org'].value.trim(), cat: f.elements['cat'].value, level: f.elements['level'].value, ladder: ladder, who: [], d: 0 }; S().entries.push(e); }
+    var who = checkedWho(f); if (who.indexOf(S().me) === -1) who.unshift(S().me);
+    addedNotice(e, who.filter(function (x) { return e.who.indexOf(x) === -1; }));
+    e.who = who; e.ext = f.elements['ext'].value.trim() || undefined;
+    e.result = res; e.award = res === 'Penghargaan khusus' ? f.elements['award'].value.trim() : undefined;
+    if (link) e.proofLink = link; if (proof) e.proofFile = proof.name;
+    if (f.elements['cert'].files[0]) e.cert = f.elements['cert'].files[0].name;
+    readFile(f.elements['photo'], function (url) { e.photo = url; A.save(); A.rerender(); });
+    if (e.d == null) e.d = 0;
+    e.status = 'pending'; e.note = '';
+    A.toast('Terkirim ke OSIS. Kamu dapat notifikasi setelah diperiksa.'); return true;
+  };
+  ACT['entry-cert'] = function (el) { A.sheet('Tambah sertifikat', '<div class="field"><span class="label">Sertifikat atau piagam</span>' + drop('cert', 'Pilih file (JPG, PNG, PDF)', 'image/*,.pdf') + '</div><p class="small muted">Hanya admin yang melihat file ini.</p>', 'entry-cert:' + el.dataset.id, 'Simpan'); return false; };
+  FORM['entry-cert'] = function (f, id) { var file = f.elements['cert'].files[0]; if (!file) { A.toast('Pilih file dulu'); return false; } entry(id).cert = file.name; A.toast('Sertifikat tersimpan'); return true; };
+  ACT['entry-next'] = function (el) {
+    var e = entry(el.dataset.id), next = A.LEVELS[A.LEVELS.indexOf(e.level) + 1];
+    var n = { id: A.uid('e'), title: e.title, org: e.org, cat: e.cat, level: next, ladder: true, prev: e.id, who: e.who.slice(), ext: e.ext, result: 'Terdaftar', status: 'joined' };
+    S().entries.push(n); addedNotice(n, n.who);
+    A.toast('Tingkat ' + next + ' ditambahkan. Perbarui hasilnya di Ubah profil.');
+  };
+  ACT['view-entry'] = function (el) { A.ui.viewEntry = el.dataset.id; };
+  ACT['fame-month'] = function (el) { if (el.dataset.val) A.ui.fameMonth = el.dataset.val; };
+  ACT['fame-public'] = function (el) { me().fameHidden = !el.checked; A.toast(el.checked ? 'Namamu tampil di Wall of Fame publik' : 'Namamu disembunyikan dari pengunjung luar'); };
+  ACT['share-entry'] = function (el) {
+    var url = 'adzvance.com/prestasi/' + el.dataset.id;
+    try { navigator.clipboard.writeText('https://' + url); } catch (err) {}
+    A.toast('Tautan disalin: ' + url); return false;
+  };
+  ACT['report-entry'] = function (el) {
+    var e = entry(el.dataset.id), member = e.who.indexOf(S().me) !== -1;
+    S().reports.unshift({ id: A.uid('rp'), kind: 'fame', entry: e.id, where: A.resLabel(e) + ', ' + e.title, by: S().me, text: member ? 'Data prestasi perlu dikoreksi.' : 'Prestasi ini diragukan.', status: 'open' });
+    A.toast('Dilaporkan ke OSIS'); return false;
   };
 
   /* ---------- notifications ---------- */
   ACT['read-all'] = function () { (S().notifs[S().me] || []).forEach(function (n) { n.read = true; }); A.toast('Semua ditandai dibaca'); };
-  ACT['open-note'] = function (el) { var n = byId(S().notifs[S().me], el.dataset.id); n.read = true; if (n.lomba) A.ui.viewLomba = n.lomba; };
+  ACT['open-note'] = function (el) { var n = byId(S().notifs[S().me], el.dataset.id); n.read = true; if (n.lomba) A.ui.viewLomba = n.lomba; if (n.entry) A.ui.viewEntry = n.entry; };
   ACT.pref = function () { A.toast('Pengaturan notifikasi disimpan'); return false; };
 
   /* ---------- profile ---------- */
@@ -187,9 +268,6 @@
     if (el.dataset.group === 'interests') { var i = s.interests.indexOf(v); if (i === -1) { if (s.interests.length < 5) s.interests.push(v); } else s.interests.splice(i, 1); }
     else { if (s.skills[v]) delete s.skills[v]; else if (Object.keys(s.skills).length < 5) s.skills[v] = []; }
   };
-  ACT['add-achv'] = function () { A.sheet('Tambah prestasi', '<div class="field"><label for="ac-t">Prestasi</label><input class="input" id="ac-t" name="title" required placeholder="Contoh: Juara 2 Lomba Esai Kabupaten"></div><div class="grid-2"><div class="field"><label for="ac-l">Tingkat</label><select class="input" id="ac-l" name="level">' + opt(['Sekolah', 'Kabupaten', 'Kota', 'Provinsi', 'Nasional', 'Internasional']) + '</select></div><div class="field"><label for="ac-y">Tahun</label><input class="input" id="ac-y" name="year" type="number" value="' + new Date().getFullYear() + '"></div></div><p class="small muted">Ajukan ke Wall of Fame untuk mendapat tanda Terverifikasi OSIS.</p>', 'achv', 'Tambah'); return false; };
-  FORM.achv = function (f) { me().achievements.unshift({ id: A.uid('a'), title: f.elements['title'].value, level: f.elements['level'].value, year: +f.elements['year'].value, verified: false }); return true; };
-  ACT['del-achv'] = function (el) { var s = me(); s.achievements = s.achievements.filter(function (a) { return a.id !== el.dataset.id; }); };
   ACT['add-karya'] = function () { A.sheet('Tambah karya unggulan', '<div class="field"><label for="ky-t">Judul</label><input class="input" id="ky-t" name="title" required></div><div class="field"><label for="ky-k">Jenis</label><select class="input" id="ky-k" name="kind">' + opt(['Proyek', 'Tulisan', 'Desain', 'Video', 'Sertifikat']) + '</select></div><div class="field"><label for="ky-u">Tautan atau file</label><input class="input" id="ky-u" name="url" placeholder="github.com/..., drive.google.com/..."></div>', 'karya', 'Tambah'); return false; };
   FORM.karya = function (f) { var icons = { Proyek: 'code', Tulisan: 'file-text', Desain: 'pen-tool', Video: 'video', Sertifikat: 'award' }; me().featured.unshift({ id: A.uid('f'), title: f.elements['title'].value, kind: f.elements['kind'].value, url: f.elements['url'].value || '-', icon: icons[f.elements['kind'].value] }); return true; };
   ACT['del-karya'] = function (el) { var s = me(); s.featured = s.featured.filter(function (x) { return x.id !== el.dataset.id; }); };
@@ -208,13 +286,9 @@
   ACT.reject = function (el) { var l = A.lomba(el.dataset.id); l.status = 'rejected'; A.audit('Menolak lomba', l.title); A.toast('Ditolak'); };
   ACT.unpublish = function (el) { var l = A.lomba(el.dataset.id); l.status = 'queue'; A.audit('Menurunkan lomba', l.title); A.toast('Diturunkan ke antrean'); };
   ACT['del-lomba'] = function (el) { var l = A.lomba(el.dataset.id); if (!confirm('Hapus "' + l.title + '"?')) return false; S().lomba = S().lomba.filter(function (x) { return x !== l; }); A.audit('Menghapus lomba', l.title); A.toast('Lomba dihapus'); if (location.hash === '#admin-lomba-form') { A.go('#admin-lomba'); return false; } };
-  ACT['round-add'] = function () { var box = document.querySelector('.rounds'); box.insertAdjacentHTML('beforeend', A.roundRow({ name: '', d: 14 })); lucide.createIcons(); box.lastElementChild.querySelector('input').focus(); return false; };
-  ACT['round-del'] = function (el) { el.closest('.round-row').remove(); return false; };
   ACT.poster = function () { A.toast('Poster dipilih (demo)'); return false; };
   FORM.lomba = function (f, id) {
-    var names = f.querySelectorAll('[name=rname]'), days = f.querySelectorAll('[name=rday]'), rounds = [];
-    names.forEach(function (n, i) { if (n.value.trim()) rounds.push({ name: n.value.trim(), d: +days[i].value }); });
-    var data = { title: f.elements['title'].value, org: f.elements['org'].value, cat: f.elements['cat'].value, form: f.elements['form'].value, level: f.elements['level'].value, fee: +f.elements['fee'].value, dl: +f.elements['dl'].value, link: f.elements['link'].value, rounds: rounds };
+    var data = { title: f.elements['title'].value, org: f.elements['org'].value, cat: f.elements['cat'].value, form: f.elements['form'].value, level: f.elements['level'].value, fee: +f.elements['fee'].value, dl: +f.elements['dl'].value, ev: +f.elements['ev'].value, ann: +f.elements['ann'].value, ladder: f.elements['ladder'].checked, link: f.elements['link'].value };
     var l = A.lomba(id);
     if (l) { Object.assign(l, data); A.audit('Mengubah lomba', l.title); A.toast('Perubahan disimpan'); }
     else { l = Object.assign({ id: A.uid('l'), status: 'published', source: 'Admin' }, data); S().lomba.push(l); A.audit('Menambah lomba', l.title); A.notify('all', { icon: 'sparkles', tone: 'sains', text: 'Lomba baru: ' + l.title + '.', href: '#lomba-detail', lomba: l.id }); A.toast('Lomba terbit'); }
@@ -246,13 +320,75 @@
   ACT['thread-del'] = function (el) { var t = thread(el.dataset.id); if (!confirm('Hapus topik "' + t.title + '"?')) return false; S().threads = S().threads.filter(function (x) { return x !== t; }); A.audit('Menghapus topik', t.title); A.toast('Topik dihapus'); };
   ACT['thread-edit'] = function (el) { var t = thread(el.dataset.id); A.sheet('Ubah judul topik', '<div class="field"><label for="te-t">Judul</label><input class="input" id="te-t" name="title" required value="' + esc(t.title) + '"></div>', 'thread-edit:' + t.id); return false; };
   FORM['thread-edit'] = function (f, id) { var t = thread(id); t.title = f.elements['title'].value; A.audit('Mengubah judul topik', t.title); A.toast('Disimpan'); return true; };
-  ACT['fame-approve'] = function (el) {
-    var f = byId(S().fame, el.dataset.id); f.status = 'approved';
-    f.elements['who'].forEach(function (id) { var s = A.stu(id); s.achievements.forEach(function (a) { if (a.title.indexOf(f.elements['title']) !== -1) a.verified = true; }); A.notify(id, { icon: 'medal', tone: 'gold', text: 'Prestasimu "' + f.elements['rank'] + ' ' + f.elements['title'] + '" tampil di Wall of Fame.', href: '#wall' }); });
-    A.audit('Menyetujui Wall of Fame', f.elements['rank'] + ' ' + f.elements['title']); A.toast('Disetujui dan tampil di Wall of Fame');
+  /* admin: verify results. An admin never verifies a result that includes themselves. */
+  function label(e) { return A.resLabel(e) + ', ' + e.title; }
+  function tell(e, n) { e.who.forEach(function (id) { A.notify(id, n); }); }
+  function backHref(e) { return e.lomba ? { href: '#lomba-detail', lomba: e.lomba } : { href: '#profil-edit' }; }
+  ACT['entry-verify'] = function (el) {
+    var e = entry(el.dataset.id);
+    if (e.who.indexOf(S().me) !== -1) { A.toast('Prestasimu sendiri harus disetujui admin lain'); return false; }
+    e.status = 'verified'; e.month = A.monthKey(0); e.note = '';
+    tell(e, { icon: 'medal', tone: 'gold', text: 'Prestasimu "' + label(e) + '" terverifikasi' + (A.eligible(e) ? ' dan tampil di Wall of Fame edisi ' + A.monthLabel(e.month) : '') + '.', href: '#prestasi', entry: e.id });
+    A.audit('Memverifikasi prestasi', label(e)); A.toast(A.eligible(e) ? 'Terverifikasi, tampil di Wall of Fame' : 'Terverifikasi');
   };
-  ACT['fame-reject'] = function (el) { var f = byId(S().fame, el.dataset.id); S().fame = S().fame.filter(function (x) { return x !== f; }); A.audit('Menolak Wall of Fame', f.elements['title']); A.toast('Pengajuan ditolak'); };
-  ACT['fame-down'] = function (el) { var f = byId(S().fame, el.dataset.id); f.status = 'pending'; A.audit('Menurunkan Wall of Fame', f.elements['title']); A.toast('Diturunkan'); };
+  function noteSheet(el, title, field, form, submit) {
+    var e = entry(el.dataset.id);
+    A.sheet(title, '<p class="muted">' + esc(label(e)) + '</p><div class="field"><label for="nt">' + field + '</label><textarea class="input" id="nt" name="note" required rows="4"></textarea></div><p class="small muted">Siswa melihat catatan ini.</p>', form + ':' + e.id, submit);
+    return false;
+  }
+  ACT['entry-info'] = function (el) { return noteSheet(el, 'Minta bukti tambahan', 'Yang perlu dilengkapi', 'entry-info', 'Kirim ke siswa'); };
+  FORM['entry-info'] = function (f, id) {
+    var e = entry(id); e.status = 'info'; e.note = f.elements['note'].value.trim();
+    tell(e, Object.assign({ icon: 'message-circle-warning', tone: 'peach', text: 'OSIS butuh bukti tambahan untuk "' + label(e) + '".' }, backHref(e)));
+    A.audit('Meminta bukti tambahan', label(e)); A.toast('Permintaan terkirim ke siswa'); return true;
+  };
+  ACT['entry-reject'] = function (el) { return noteSheet(el, 'Tolak prestasi', 'Alasan', 'entry-reject', 'Tolak'); };
+  FORM['entry-reject'] = function (f, id) {
+    var e = entry(id); e.status = 'rejected'; e.note = f.elements['note'].value.trim(); delete e.month;
+    tell(e, Object.assign({ icon: 'circle-x', tone: 'peach', text: 'Prestasi "' + label(e) + '" ditolak OSIS. Lihat alasannya.' }, backHref(e)));
+    A.audit('Menolak prestasi', label(e)); A.toast('Ditolak'); return true;
+  };
+  ACT['entry-down'] = function (el) {
+    var e = entry(el.dataset.id); if (!confirm('Turunkan "' + label(e) + '" dari Wall of Fame?')) return false;
+    e.status = 'rejected'; e.note = 'Diturunkan admin OSIS.'; delete e.month;
+    A.audit('Menurunkan prestasi', label(e)); A.toast('Diturunkan dari Wall of Fame');
+  };
+  ACT['entry-edit'] = function (el) {
+    var e = entry(el.dataset.id);
+    A.sheet('Ubah prestasi', '<div class="field"><label for="ee-t">Nama lomba</label><input class="input" id="ee-t" name="title" required value="' + esc(e.title) + '"></div>' +
+      '<div class="grid-2"><div class="field"><label for="ee-r">Hasil</label><select class="input" id="ee-r" name="result">' + opt(wins(true), e.result) + '</select></div><div class="field"><label for="ee-l">Tingkat</label><select class="input" id="ee-l" name="level">' + opt(A.LEVELS, e.level) + '</select></div></div>' +
+      '<div class="field"><label for="ee-a">Nama penghargaan</label><input class="input" id="ee-a" name="award" value="' + esc(e.award || '') + '" placeholder="Untuk penghargaan khusus"></div>', 'entry-edit:' + e.id, 'Simpan');
+    return false;
+  };
+  FORM['entry-edit'] = function (f, id) {
+    var e = entry(id), res = f.elements['result'].value;
+    if (A.resInfo(res).ladder && !e.ladder) { A.toast('"Lolos ke tingkat berikutnya" hanya untuk lomba berjenjang'); return false; }
+    e.title = f.elements['title'].value.trim(); e.result = res; e.level = f.elements['level'].value;
+    e.award = res === 'Penghargaan khusus' ? f.elements['award'].value.trim() : undefined;
+    A.audit('Mengubah prestasi', label(e)); A.toast('Disimpan'); return true;
+  };
+  ACT['entry-ig'] = function () {
+    A.sheet('Tambah dari Instagram sekolah', '<div class="field"><label for="ig-l">Tautan unggahan Instagram sekolah</label><input class="input" id="ig-l" name="link" required placeholder="instagram.com/p/..."></div>' +
+      compFields({ level: 'Kabupaten/Kota' }) + resultFields({}, 'Juara 1', false) +
+      '<div class="field"><span class="label">Siswa</span>' + studentPicks([], false) + '</div>' +
+      '<div class="field"><label for="ig-x">Anggota dari sekolah lain (opsional)</label><input class="input" id="ig-x" name="ext"></div>' +
+      '<div class="field"><span class="label">Foto (opsional)</span>' + drop('photo', 'JPG atau PNG, maks. 2 MB', 'image/png,image/jpeg') + '</div>', 'entry-ig', 'Terbitkan');
+    return false;
+  };
+  FORM['entry-ig'] = function (f) {
+    var who = checkedWho(f), res = f.elements['result'].value, ladder = f.elements['ladder'].checked;
+    if (!who.length) { A.toast('Pilih minimal satu siswa'); return false; }
+    if (A.resInfo(res).ladder && !ladder) { A.toast('"Lolos ke tingkat berikutnya" hanya untuk lomba berjenjang'); return false; }
+    var e = { id: A.uid('e'), title: f.elements['title'].value.trim(), org: f.elements['org'].value.trim(), cat: f.elements['cat'].value, level: f.elements['level'].value, ladder: ladder, who: who, ext: f.elements['ext'].value.trim() || undefined,
+      result: res, award: res === 'Penghargaan khusus' ? f.elements['award'].value.trim() : undefined, proofLink: f.elements['link'].value.trim(), d: 0, source: 'osis' };
+    var self = who.indexOf(S().me) !== -1;
+    e.status = self ? 'pending' : 'verified'; if (!self) e.month = A.monthKey(0);
+    S().entries.push(e);
+    readFile(f.elements['photo'], function (url) { e.photo = url; A.save(); A.rerender(); });
+    if (!self) tell(e, { icon: 'medal', tone: 'gold', text: 'OSIS menambahkan prestasimu "' + label(e) + '" ke Wall of Fame. Ada yang salah? Laporkan dari halaman prestasi.', href: '#prestasi', entry: e.id });
+    A.audit('Menambah prestasi dari Instagram sekolah', label(e));
+    A.toast(self ? 'Ada namamu, jadi admin lain yang menyetujui' : 'Terbit di Wall of Fame'); return true;
+  };
   ACT.deactivate = function (el) { var s = A.stu(el.dataset.id); s.active = false; A.audit('Menonaktifkan akun', s.name); A.toast(s.name + ' dinonaktifkan'); };
   ACT.activate = function (el) { var s = A.stu(el.dataset.id); s.active = true; A.audit('Mengaktifkan akun', s.name); A.toast(s.name + ' aktif lagi'); };
   ACT['set-badges'] = function (el) {
@@ -347,6 +483,7 @@
     if (f.closest('dialog')) { if (close) { A.closeSheet(); A.rerender(); } }
   });
   document.getElementById('sheet').addEventListener('click', function (e) { if (e.target === this) A.closeSheet(); });
+  document.getElementById('sheet').addEventListener('close', function () { A.rerender(); }); // a cancelled result pick snaps back
 
   A.render();
 })();

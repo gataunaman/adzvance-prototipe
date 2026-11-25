@@ -6,6 +6,7 @@
 <title>ADZVANCE Prototipe</title>
 <meta name="description" content="Prototipe ADZVANCE: cari lomba, cari tim, dan forum soal untuk siswa Adzkia.">
 <meta name="theme-color" content="#fbf9f6">
+<meta name="robots" content="noindex, nofollow"><!-- demo only: keep the prototype out of search results -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +15,22 @@
 <link rel="stylesheet" href="soft.css">
 <link rel="stylesheet" href="showcase.css">
 <link rel="stylesheet" href="interactive.css">
+<link rel="stylesheet" href="public.css">
 </head>
 <body>
+
+<!-- ===================== PUBLIC SHELL (no login) ===================== -->
+<header class="shell shell--public bar bar--public">
+  <div class="container bar__in">
+    <a class="brand brand--pub" href="#home"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>ADZVANCE</a>
+    <nav class="nav" aria-label="Menu publik">
+      <a href="#home" data-for="home">Beranda</a>
+      <a href="#wall" data-for="wall prestasi">Wall of Fame</a>
+      <a href="#tentang" data-for="tentang privasi">Tentang kami</a>
+    </nav>
+    <div class="bar__end" data-fill="pub-cta"></div>
+  </div>
+</header>
 
 <!-- ===================== STUDENT SHELL ===================== -->
 <header class="shell shell--siswa bar">
@@ -90,6 +105,11 @@
 </aside>
 
 <main>
+<!-- public -->
+<section class="screen screen--public" id="home" aria-label="Beranda"><div class="view"></div></section>
+<section class="screen screen--public" id="tentang" aria-label="Tentang kami"><div class="view"></div></section>
+<section class="screen screen--public" id="privasi" aria-label="Kebijakan privasi"><div class="view"></div></section>
+
 <!-- auth -->
 <section class="screen" id="masuk" aria-label="Masuk"><div class="view"></div></section>
 <section class="screen" id="dev-masuk" aria-label="Masuk developer"><div class="view"></div></section>
@@ -105,6 +125,7 @@
 <section class="screen screen--siswa" id="forum" aria-label="Forum Soal"><div class="view"></div></section>
 <section class="screen screen--siswa" id="forum-thread" aria-label="Pertanyaan"><div class="view"></div></section>
 <section class="screen screen--siswa" id="wall" aria-label="Wall of Fame"><div class="view"></div></section>
+<section class="screen screen--siswa" id="prestasi" aria-label="Prestasi"><div class="view"></div></section>
 <section class="screen screen--siswa" id="notifikasi" aria-label="Notifikasi"><div class="view"></div></section>
 <section class="screen screen--siswa" id="profil" aria-label="Profil saya"><div class="view"></div></section>
 <section class="screen screen--siswa" id="profil-edit" aria-label="Ubah profil"><div class="view"></div></section>
@@ -127,11 +148,24 @@
 <section class="screen screen--dev" id="dev-audit" aria-label="Log audit"><div class="view"></div></section>
 </main>
 
+<footer class="shell shell--public pubfoot">
+  <div class="container pubfoot__in">
+    <img class="pubfoot__logo" src="img/adzkia-logo.png" alt="SMA Islam Plus Adzkia Medan">
+    <p class="small muted">Kampus I: Jl. Tuasan No. 4 dan 6, Medan<br>Kampus II: Jl. Iskandar Muda No. 244, Medan</p>
+    <nav class="pubfoot__links" aria-label="Tautan">
+      <a href="#tentang">Tentang kami</a><a href="#privasi">Kebijakan privasi</a>
+      <a href="https://instagram.com/smaislamplusadzkiamedan" target="_blank" rel="noopener"><i data-lucide="instagram"></i>Instagram sekolah</a>
+      <a href="https://smaislamplusadzkia.com" target="_blank" rel="noopener"><i data-lucide="globe"></i>Situs sekolah</a>
+    </nav>
+  </div>
+</footer>
+
 <dialog id="sheet" class="drawer" aria-label="Formulir"></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <nav class="demo" aria-label="Pindah tampilan demo">
   <span class="demo__label">Demo</span>
+  <a href="#" data-act="demo" data-val="publik" data-demo="publik">Publik</a>
   <a href="#" data-act="demo" data-val="masuk" data-demo="masuk">Masuk</a>
   <a href="#" data-act="demo" data-val="siswa" data-demo="siswa">Siswa</a>
   <a href="#" data-act="demo" data-val="admin" data-demo="admin">OSIS</a>
@@ -144,6 +178,7 @@
 <script src="js/core.js"></script>
 <script src="js/views-siswa.js"></script>
 <script src="js/views-admin.js"></script>
+<script src="js/views-public.js"></script>
 <script src="js/actions.js"></script>
 </body>
 </html>

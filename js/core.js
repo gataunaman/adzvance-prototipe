@@ -1,11 +1,11 @@
 /* ADZVANCE prototype: state, helpers, routing. Plain script, no build step. */
 (function () {
-  var KEY = 'adzvance-demo-v3';
+  var KEY = 'adzvance-demo-v4';
   var A = window.A = { V: {}, ACT: {}, FORM: {}, ui: { filters: {}, q: '', subj: 'all', skill: null, kelas: null, viewUser: null, viewLomba: 'esai-energi', viewThread: 'th1', editLomba: null, menu: false } };
 
   /* ---------- store ---------- */
   function load() {
-    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.version === 3) return s; } } catch (e) {}
+    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.version === 4) return s; } } catch (e) {}
     return window.SEED();
   }
   A.S = load();
@@ -41,6 +41,33 @@
     return '<span class="org' + (pair[0] === 'osis' ? ' org--osis' : '') + (sm ? ' org--sm' : '') + '">' + A.ic(o.icon) + A.esc(pair[1] + ' ' + o.name) + '</span>';
   };
   A.topOrg = function (s) { return s && s.orgs && s.orgs.length ? A.org(s.orgs[0], true) : ''; };
+  /* ---------- competition results ---------- */
+  // wall: counts for the Wall of Fame; cls: colour; ladder: only on ladder competitions (OSN, FLS2N, O2SN, LKS)
+  A.RESULTS = {
+    'Terdaftar': {}, 'Tidak lolos': {}, 'Mundur': {},
+    'Juara 1': { wall: 1, cls: 'gold' }, 'Juara 2': { wall: 1, cls: 'silver' }, 'Juara 3': { wall: 1, cls: 'bronze' },
+    'Harapan 1': { wall: 1, cls: 'soft' }, 'Harapan 2': { wall: 1, cls: 'soft' }, 'Harapan 3': { wall: 1, cls: 'soft' },
+    'Medali emas': { wall: 1, cls: 'gold' }, 'Medali perak': { wall: 1, cls: 'silver' }, 'Medali perunggu': { wall: 1, cls: 'bronze' },
+    'Penghargaan khusus': { wall: 1, cls: 'special' },
+    'Lolos ke tingkat berikutnya': { wall: 1, cls: 'soft', ladder: 1 }
+  };
+  A.LEVELS = ['Kabupaten/Kota', 'Provinsi', 'Nasional', 'Internasional'];
+  A.resInfo = function (r) { return A.RESULTS[r] || {}; };
+  A.isWin = function (e) { var r = A.resInfo(e.result); return !!(r.wall && (!r.ladder || e.ladder)); };
+  A.eligible = function (e) { return A.isWin(e) && e.level !== 'Sekolah'; };
+  A.resLabel = function (e) { return e.result === 'Penghargaan khusus' && e.award ? e.award : e.result === 'Lolos ke tingkat berikutnya' ? 'Lolos ke tingkat berikutnya' : e.result; };
+  A.entriesOf = function (id) { return A.S.entries.filter(function (e) { return e.who.indexOf(id) !== -1; }); };
+  A.entryFor = function (lombaId, id) { return A.S.entries.find(function (e) { return e.lomba === lombaId && e.who.indexOf(id || A.S.me) !== -1 && !e.next; }); };
+  var MONTHS_L = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  A.monthKey = function (off) { var t = new Date(); t.setDate(1); t.setMonth(t.getMonth() + (off || 0)); return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2); };
+  A.monthLabel = function (k) { var p = k.split('-'); return MONTHS_L[+p[1] - 1] + ' ' + p[0]; };
+  /* the people on a public card: students who hid themselves are counted, not named, when logged out */
+  A.whoShown = function (e) {
+    var pub = !A.S.me, list = e.who.map(A.stu).filter(Boolean);
+    var shown = pub ? list.filter(function (s) { return !s.fameHidden; }) : list;
+    return { shown: shown, hidden: list.length - shown.length };
+  };
+
   A.empty = function (icon, title, action) { return '<div class="empty">' + A.ic(icon) + '<p>' + title + '</p>' + (action || '') + '</div>'; };
 
   /* ---------- side effects ---------- */
@@ -88,8 +115,12 @@
 
   A.render = function (keepScroll) {
     var s = A.screenOf(), el = s.el;
-    var kind = el.classList.contains('screen--siswa') ? 'siswa' : el.classList.contains('screen--admin') ? 'admin' : el.classList.contains('screen--dev') ? 'dev' : 'auth';
-    if (kind === 'siswa' && !A.S.me && !(A.S.dev && s.id === 'orang')) return A.go('#masuk');
+    var kind = el.classList.contains('screen--siswa') ? 'siswa' : el.classList.contains('screen--admin') ? 'admin' : el.classList.contains('screen--dev') ? 'dev' : el.classList.contains('screen--public') ? 'public' : 'auth';
+    if (kind === 'public' && s.id === 'home' && A.S.me) return A.go('#beranda');
+    if (kind === 'siswa' && !A.S.me && !(A.S.dev && s.id === 'orang')) {
+      if (s.id === 'wall' || s.id === 'prestasi') kind = 'public'; // the Wall of Fame is public
+      else return A.go('#masuk');
+    }
     if (kind === 'admin' && !A.isAdmin()) return A.go(A.S.me ? '#beranda' : '#masuk');
     if (kind === 'dev' && !A.S.dev) return A.go('#dev-masuk');
     if (kind === 'siswa') A.S.adminMode = false;
@@ -129,13 +160,16 @@
       a.setAttribute('href', devOnly ? '#dev' : '#beranda');
       a.querySelector('span').textContent = devOnly ? 'Konsol developer' : 'Tampilan siswa';
     });
+    document.querySelectorAll('[data-fill="pub-cta"]').forEach(function (c) {
+      c.innerHTML = m ? '<a class="btn btn--secondary" href="#beranda">' + A.ic('layout-grid') + 'Buka aplikasi</a>' : '<a class="btn btn--primary" href="#masuk">' + A.ic('log-in') + 'Masuk</a>';
+    });
     document.querySelectorAll('.demo a[data-demo]').forEach(function (a) {
       var d = a.getAttribute('data-demo');
-      var on = (d === 'siswa' && kind === 'siswa') || (d === 'admin' && kind === 'admin') || (d === 'dev' && kind === 'dev') || (d === 'masuk' && kind === 'auth');
+      var on = (d === 'siswa' && kind === 'siswa') || (d === 'admin' && kind === 'admin') || (d === 'dev' && kind === 'dev') || (d === 'masuk' && kind === 'auth') || (d === 'publik' && kind === 'public');
       a.setAttribute('aria-current', String(on));
     });
   };
 
   window.addEventListener('hashchange', function () { A.render(); });
-  if (!location.hash) history.replaceState(null, '', A.S.me ? '#beranda' : A.S.dev ? '#dev' : '#masuk');
+  if (!location.hash) history.replaceState(null, '', A.S.me ? '#beranda' : A.S.dev ? '#dev' : '#home');
 })();

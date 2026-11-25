@@ -13,6 +13,38 @@
   function teammates(a, b) { return A.S.teams.some(function (t) { return t.members.indexOf(a) !== -1 && t.members.indexOf(b) !== -1; }); }
   A.published = published; A.saved = saved;
 
+  /* ---------- one competition entry: joined → result → OSIS → Wall ---------- */
+  var STATUS = {
+    joined: ['circle-check', 'Kamu ikut lomba ini', ''], pending: ['clock', 'Menunggu verifikasi OSIS', 'warn'],
+    info: ['message-circle-warning', 'OSIS butuh bukti tambahan', 'warn'], verified: ['badge-check', 'Terverifikasi OSIS', 'ok'], rejected: ['circle-x', 'Ditolak OSIS', 'bad']
+  };
+  A.STATUS = STATUS;
+  function resultOptions(e) {
+    var wins = Object.keys(A.RESULTS).filter(function (r) { var i = A.RESULTS[r]; return i.wall && (!i.ladder || e.ladder); });
+    return [['Terdaftar', 'Belum ada hasil']].concat(wins.map(function (r) { return [r, r]; }), [['Tidak lolos', 'Tidak lolos'], ['Mundur', 'Mundur']]);
+  }
+  A.resultOptions = resultOptions;
+  function entryBox(e) {
+    var st = STATUS[e.status], open = e.status === 'joined' || e.status === 'rejected';
+    var team = e.who.length > 1 || e.ext ? '<p class="small muted">' + ic('users') + ' ' + e.who.map(function (id) { return id === A.S.me ? 'Kamu' : esc(A.stu(id).name.split(' ')[0]); }).concat(e.ext ? [esc(e.ext)] : []).join(', ') + '</p>' : '';
+    var priv = !A.resInfo(e.result).wall && e.result !== 'Terdaftar';
+    var h = '<div class="joinbox joinbox--' + e.status + '"><div class="joinbox__head">' + ic(st[0]) + '<strong>' + st[1] + '</strong></div>' + team;
+    if (open) {
+      h += '<label class="label" for="hasil">Hasil akhir</label><select class="input" id="hasil" data-act="result" data-id="' + e.id + '">' + resultOptions(e).map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === e.result ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
+      if (priv) h += '<p class="small muted">' + ic('lock') + ' Hanya kamu dan timmu yang melihat ini.</p>';
+    } else h += '<span class="fres fres--' + (A.resInfo(e.result).cls || 'soft') + '">' + esc(A.resLabel(e)) + ' · ' + esc(e.level) + '</span>';
+    if (e.note && (e.status === 'info' || e.status === 'rejected')) h += '<p class="joinbox__note">' + esc(e.note) + '</p>';
+    if (e.status === 'info' || (e.status === 'rejected' && A.isWin(e))) h += '<button class="btn btn--primary btn--block" type="button" data-act="entry-open" data-id="' + e.id + '">' + ic('upload') + (e.status === 'info' ? 'Lengkapi bukti' : 'Kirim ulang') + '</button>';
+    if (e.status === 'verified') {
+      if (A.eligible(e)) h += '<a class="btn btn--secondary btn--block" href="#prestasi" data-act="view-entry" data-id="' + e.id + '">' + ic('star') + 'Lihat di Wall of Fame</a>';
+      if (!e.cert) h += '<button class="btn btn--quiet btn--block" type="button" data-act="entry-cert" data-id="' + e.id + '">' + ic('paperclip') + 'Tambah sertifikat (opsional)</button>';
+      if (e.ladder && e.level !== 'Internasional' && !A.S.entries.some(function (x) { return x.prev === e.id; })) h += '<button class="btn btn--quiet btn--block" type="button" data-act="entry-next" data-id="' + e.id + '">' + ic('route') + 'Lanjut ke tingkat berikutnya</button>';
+    }
+    if (e.status === 'joined' && e.result === 'Terdaftar') h += '<button class="btn btn--quiet btn--block" type="button" data-act="' + (e.who.length > 1 ? 'entry-leave' : 'unjoin') + '" data-id="' + e.id + '">' + (e.who.length > 1 ? 'Bukan timku' : 'Batal ikut') + '</button>';
+    return h + '</div>';
+  }
+  A.entryBox = entryBox;
+
   /* ---------- avatar menu (shared shell) ---------- */
   V._menu = function () {
     var m = A.me(), h = '';
@@ -61,11 +93,11 @@
     var feat = pub.filter(function (l) { return bm.indexOf(l.id) !== -1; })[0] || pub[0];
     var next = pub.filter(function (l) { return l !== feat; }).slice(0, 3);
     var rec = pub.filter(function (l) { return interestCats.indexOf(l.cat) !== -1 && l !== feat; }).slice(0, 3);
-    var joined = Object.keys(A.S.joined[m.id] || {}).length;
+    var joined = A.entriesOf(m.id).length;
     var teams = myTeams();
     var inv = A.S.invites.filter(function (i) { return i.to === m.id && i.status === 'pending'; })[0];
     var anns = annSorted().slice(0, 3);
-    var fame = A.S.fame.filter(function (f) { return f.status === 'approved'; })[0];
+    var fame = A.S.entries.filter(function (e) { return e.status === 'verified' && A.eligible(e); }).sort(function (a, b) { return b.month.localeCompare(a.month) || b.d - a.d; })[0];
     var mine = A.S.threads.slice(1, 3);
 
     var h = '<div class="container page">';
@@ -106,7 +138,7 @@
     h += '<div><div class="section-title"><h3>Forum terbaru</h3><a class="link small" href="#forum">Semua</a></div><div class="members">' + mine.map(function (t) {
       return '<a class="member" href="#forum-thread" data-act="view-thread" data-id="' + t.id + '"><span class="subj subj--' + t.subj + '">' + A.S.subjects[t.subj].slice(0, 3) + '</span><div><div class="post__name">' + esc(t.title) + '</div><div class="small muted">' + t.replies.length + ' balasan</div></div></a>';
     }).join('') + '</div></div>';
-    if (fame) h += '<a class="famecard" href="#wall"><span class="famecard__icon">' + ic('medal') + '</span><div><div class="small">Prestasi terbaru</div><strong>' + esc(fame.rank + ' ' + fame.title) + '</strong><div class="small">' + fame.who.map(function (id) { return esc(A.stu(id).name); }).join(' dan ') + '</div></div></a>';
+    if (fame) h += '<a class="famecard" href="#prestasi" data-act="view-entry" data-id="' + fame.id + '"><span class="famecard__icon">' + ic('medal') + '</span><div><div class="small">Prestasi terbaru</div><strong>' + esc(A.resLabel(fame) + ', ' + fame.title) + '</strong><div class="small">' + fame.who.map(function (id) { return esc(A.stu(id).name); }).join(' dan ') + '</div></div></a>';
     h += '</aside></div></div>';
     return h;
   };
@@ -157,7 +189,7 @@
       '<div class="filters__group"><span class="label">Bentuk</span><div class="chips">' + chip('form', 'Online', 'Online') + chip('form', 'Offline', 'Offline') + '</div></div>' +
       '<div class="filters__group"><span class="label">Biaya</span><div class="chips">' + chip('fee', 'free', 'Gratis') + chip('fee', 'paid', 'Berbayar') + '</div></div>' +
       (active ? '<button class="btn btn--quiet" type="button" data-act="filters-clear">' + ic('rotate-ccw') + 'Hapus saringan</button>' : '') + '</aside>';
-    return '<div class="container page">' + band('peach', 'award', 'Info Lomba', all.length + ' lomba aktif untuk SMA dan SMK, ' + all.filter(function (l) { return l.dl <= 7; }).length + ' tutup minggu ini', '<button class="btn btn--secondary" type="button" data-act="suggest-lomba">Usulkan lomba</button>') +
+    return '<div class="container page">' + band('peach', 'award', 'Info Lomba', all.length + ' lomba aktif untuk SMA, ' + all.filter(function (l) { return l.dl <= 7; }).length + ' tutup minggu ini', '<button class="btn btn--secondary" type="button" data-act="suggest-lomba">Usulkan lomba</button>') +
       '<div class="browse">' + side + '<div>' + tabs + '<div class="browse__bar"><span><strong>' + list.length + '</strong> lomba</span><button class="btn btn--secondary filter-toggle" type="button" data-act="filters-open">' + ic('sliders-horizontal') + 'Saring' + (active ? ' (' + active + ')' : '') + '</button>' + sortSel + '</div>' +
       (list.length ? '<div class="cards">' + list.map(card).join('') + '</div>' : emptyMsg) + '</div></div></div>';
   };
@@ -165,18 +197,11 @@
   /* ---------- detail lomba ---------- */
   V['lomba-detail'] = function () {
     var l = A.lomba(A.ui.viewLomba) || published()[0], c = A.cat(l.cat);
-    var me = A.S.me, j = (A.S.joined[me] || {})[l.id];
-    var rounds = l.rounds && l.rounds.length ? l.rounds : [{ name: 'Pendaftaran ditutup', d: l.dl }, { name: 'Pelaksanaan', d: l.dl + 10 }, { name: 'Pengumuman', d: l.dl + 20 }];
-    var nowIdx = rounds.findIndex(function (r) { return r.d >= 0; });
+    var e = A.entryFor(l.id);
+    var dates = [['Pendaftaran ditutup', l.dl], ['Pelaksanaan', l.ev || l.dl + 10], ['Pengumuman', l.ann || l.dl + 20]];
+    var nowIdx = dates.findIndex(function (r) { return r[1] >= 0; });
     var posts = A.S.posts.filter(function (p) { return p.lomba === l.id; });
-    var results = ['Terdaftar', 'Lolos seleksi', 'Finalis', 'Juara 1', 'Juara 2', 'Juara 3', 'Harapan', 'Tidak lolos'];
-    var win = j && /^(Juara|Harapan)/.test(j.result);
-    var joinBox = j ? '<div class="joinbox"><div class="joinbox__head">' + ic('circle-check') + '<strong>Kamu ikut lomba ini</strong></div>' +
-      '<label class="label" for="hasil">Hasil</label><select class="input" id="hasil" data-act="result" data-id="' + l.id + '">' + results.map(function (r) { return '<option' + (r === j.result ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select>' +
-      (j.proof ? '<p class="small muted">' + ic('paperclip') + ' Bukti pendaftaran terlampir</p>' : '') +
-      (win ? '<button class="btn btn--primary btn--block" type="button" data-act="fame-from" data-id="' + l.id + '">' + ic('medal') + 'Ajukan ke Wall of Fame</button>' : '') +
-      '<button class="btn btn--quiet btn--block" type="button" data-act="unjoin" data-id="' + l.id + '">Batal ikut</button></div>'
-      : '<button class="btn btn--secondary btn--block" type="button" data-act="join" data-id="' + l.id + '">' + ic('circle-plus') + 'Saya ikut</button>';
+    var joinBox = e ? entryBox(e) : '<button class="btn btn--secondary btn--block" type="button" data-act="join" data-id="' + l.id + '">' + ic('circle-plus') + 'Saya ikut</button>';
     var on = saved(l.id);
     return '<div class="container page"><p class="crumb"><a class="link small" href="#lomba">' + ic('arrow-left') + 'Kembali ke Info Lomba</a></p><div class="detail">' +
       '<aside class="detail__side"><div class="detail__poster poster--' + l.cat + '">' + ic(c.icon, 'poster__icon') + '</div>' +
@@ -186,9 +211,9 @@
       '<a class="btn btn--quiet btn--block" href="#partner">' + ic('users') + 'Cari partner</a></aside>' +
       '<div class="detail__main"><div class="tags" style="margin-bottom: var(--space-sm)"><span class="tag tag--' + l.cat + '">' + c.name + '</span><span class="tag">' + l.form + '</span><span class="tag">' + esc(l.jenjang || 'SMA, SMK') + '</span></div>' +
       '<h1>' + esc(l.title) + '</h1><p class="muted" style="margin-top: var(--space-xs)">' + esc(l.org) + '</p>' +
-      '<nav class="toc" aria-label="Bagian"><a href="#ld-ringkasan">Ringkasan</a><a href="#ld-jadwal">Jadwal dan babak</a><a href="#ld-syarat">Syarat</a><a href="#ld-hadiah">Hadiah</a><a href="#ld-kontak">Kontak</a></nav>' +
+      '<nav class="toc" aria-label="Bagian"><a href="#ld-ringkasan">Ringkasan</a><a href="#ld-jadwal">Jadwal</a><a href="#ld-syarat">Syarat</a><a href="#ld-hadiah">Hadiah</a><a href="#ld-kontak">Kontak</a></nav>' +
       '<section class="dsec"><h2 id="ld-ringkasan">Ringkasan</h2><div class="factgrid"><div><span class="label">Tema</span><span>' + esc(l.tema || c.name) + '</span></div><div><span class="label">Jenjang</span><span>' + esc(l.jenjang || 'SMA, SMK, sederajat') + '</span></div><div><span class="label">Bentuk</span><span>' + l.form + '</span></div><div><span class="label">Biaya</span><span>' + A.fee(l.fee) + '</span></div><div><span class="label">Peserta</span><span>' + esc(l.peserta || 'Perorangan atau tim') + '</span></div><div><span class="label">Tingkat</span><span>' + l.level + '</span></div></div></section>' +
-      '<section class="dsec"><h2 id="ld-jadwal">Jadwal dan babak</h2><ol class="timeline">' + rounds.map(function (r, i) { return '<li class="' + (i === nowIdx ? 'is-now' : '') + (r.d < 0 ? ' is-past' : '') + '"><span class="mono">' + A.dateAt(r.d, false) + '</span><span>' + esc(r.name) + (i === nowIdx ? ' <span class="tag tag--hot">Berikutnya</span>' : '') + '</span></li>'; }).join('') + '</ol></section>' +
+      '<section class="dsec"><h2 id="ld-jadwal">Jadwal</h2><ol class="timeline">' + dates.map(function (r, i) { return '<li class="' + (i === nowIdx ? 'is-now' : '') + (r[1] < 0 ? ' is-past' : '') + '"><span class="mono">' + A.dateAt(r[1], false) + '</span><span>' + r[0] + (i === nowIdx ? ' <span class="tag tag--hot">Berikutnya</span>' : '') + '</span></li>'; }).join('') + '</ol>' + (l.ladder ? '<p class="small muted">' + ic('route') + ' Lomba berjenjang: lolos ke tingkat berikutnya ikut tampil di Wall of Fame.</p>' : '') + '</section>' +
       '<section class="dsec"><h2 id="ld-syarat">Syarat</h2><ul class="checks">' + (l.syarat || ['Siswa aktif SMA, SMK, atau sederajat', 'Mengikuti ketentuan penyelenggara']).map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul></section>' +
       '<section class="dsec"><h2 id="ld-hadiah">Hadiah</h2><div class="prizes">' + (l.hadiah || ['Piala', 'Sertifikat', 'Sertifikat']).map(function (p, i) { return '<div class="prize' + (i === 0 ? ' prize--first' : '') + '"><span class="label">Juara ' + (i + 1) + '</span><span class="figure figure--s">' + esc(p) + '</span></div>'; }).join('') + '</div></section>' +
       '<section class="dsec"><h2 id="ld-kontak">Kontak</h2><dl class="facts"><dt>Narahubung</dt><dd>' + esc(l.kontak || 'Lihat situs penyelenggara') + '</dd><dt>Sumber</dt><dd>' + esc(l.source === 'Google' ? 'Ditemukan lewat pencarian Google' : l.source === 'Admin' ? 'Ditambahkan admin OSIS' : 'Usulan siswa') + '</dd></dl></section>' +
@@ -276,14 +301,7 @@
       '<form class="composer" data-form="reply" data-id="' + t.id + '"><label class="visually-hidden" for="balas">Tulis balasan</label><input class="input" id="balas" name="body" placeholder="Tulis balasan" autocomplete="off"><button class="btn btn--primary" type="submit">Kirim</button></form></div></div>';
   };
 
-  /* ---------- wall of fame ---------- */
-  V.wall = function () {
-    var list = A.S.fame.filter(function (f) { return f.status === 'approved'; });
-    return '<div class="container page">' + band('gold', 'star', 'Wall of Fame', list.length + ' prestasi siswa Adzkia', '<button class="btn btn--primary" type="button" data-act="new-fame">Ajukan prestasi</button>') +
-      '<div class="fame">' + list.map(function (f, i) {
-        return '<article class="fame__item' + (i === 0 ? ' fame__item--feat' : '') + '"><div class="fame__slot fame__slot--' + f.rcls + '">' + ic(f.rcls === 'gold' ? 'trophy' : 'medal', 'poster__icon') + '</div><div class="fame__info"><span class="fame__rank fame__rank--' + f.rcls + '">' + esc(f.rank) + '</span><div class="post__name">' + esc(f.title) + '</div><div class="small muted fame__who">' + f.who.map(function (id) { return A.name(A.stu(id)); }).join(' dan ') + ', ' + esc(f.date) + '</div></div></article>';
-      }).join('') + '</div></div>';
-  };
+  /* wall of fame and result pages live in views-public.js (they are public) */
 
   /* ---------- notifikasi ---------- */
   V.notifikasi = function () {
@@ -306,18 +324,19 @@
   function profileView(s, mode) {
     var own = mode === 'own', viewer = A.S.me, mate = teammates(viewer, s.id);
     var photo = s.photo ? '<span class="avatar avatar--l avatar--photo" style="background-image:url(' + s.photo + ')"></span>' : '<span class="avatar avatar--l av--' + s.av + '">' + s.ini + '</span>';
-    var fame = A.S.fame.filter(function (f) { return f.status === 'approved' && f.who.indexOf(s.id) !== -1; });
-    var joined = A.S.joined[s.id] || {};
+    var mine = A.entriesOf(s.id);
+    var wins = mine.filter(function (e) { return e.status === 'verified' && A.isWin(e); });
+    /* others never see private results (not passed, withdrew) or unverified claims */
+    var hist = mine.filter(function (e) { return own || (e.status === 'verified' || ['Tidak lolos', 'Mundur'].indexOf(e.result) === -1); });
     var sec = {
       about: s.bio ? '<p>' + esc(s.bio) + '</p>' : '',
-      prestasi: (s.achievements.length || fame.length) ? '<div class="achv-list">' + s.achievements.map(function (a) {
-        return '<div class="achv">' + '<span class="achv__icon">' + ic('award') + '</span><div><strong>' + esc(a.title) + '</strong><div class="small muted">' + esc(a.level) + ', ' + a.year + '</div></div>' + (a.verified ? '<span class="verified">' + ic('badge-check') + 'Terverifikasi OSIS</span>' : '') + '</div>';
-      }).join('') + fame.filter(function (f) { return !s.achievements.some(function (a) { return a.title.indexOf(f.title) !== -1; }); }).map(function (f) {
-        return '<div class="achv"><span class="achv__icon">' + ic('medal') + '</span><div><strong>' + esc(f.rank + ' ' + f.title) + '</strong><div class="small muted">Wall of Fame, ' + esc(f.date) + '</div></div><span class="verified">' + ic('badge-check') + 'Terverifikasi OSIS</span></div>';
+      prestasi: wins.length ? '<div class="achv-list">' + wins.map(function (e) {
+        return '<a class="achv" href="#prestasi" data-act="view-entry" data-id="' + e.id + '"><span class="achv__icon">' + ic('medal') + '</span><div><strong>' + esc(A.resLabel(e) + ', ' + e.title) + '</strong><div class="small muted">' + esc(e.level) + ', ' + A.dateAt(e.d) + '</div></div><span class="verified">' + ic('badge-check') + 'Terverifikasi OSIS</span></a>';
       }).join('') + '</div>' : '',
-      riwayat: Object.keys(joined).length ? '<div class="history">' + Object.keys(joined).map(function (id) {
-        var l = A.lomba(id); if (!l) return '';
-        return '<div class="history__row"><span class="dot dot--' + l.cat + '"></span><a href="#lomba-detail" data-act="view-lomba" data-id="' + l.id + '">' + esc(l.title) + '</a><span class="tag' + (/^(Juara|Harapan)/.test(joined[id].result) ? ' tag--hot' : '') + '">' + esc(joined[id].result) + '</span></div>';
+      riwayat: hist.length ? '<div class="history">' + hist.map(function (e) {
+        var showRes = own || e.status === 'verified';
+        var title = e.lomba ? '<a href="#lomba-detail" data-act="view-lomba" data-id="' + e.lomba + '">' + esc(e.title) + '</a>' : '<span>' + esc(e.title) + ' <span class="muted small">' + esc(e.level) + '</span></span>';
+        return '<div class="history__row"><span class="dot dot--' + e.cat + '"></span>' + title + (showRes && e.result !== 'Terdaftar' ? '<span class="tag' + (A.isWin(e) ? ' tag--hot' : '') + '">' + esc(A.resLabel(e)) + '</span>' : '') + '</div>';
       }).join('') + '</div>' : '',
       karya: s.featured.length ? '<div class="karya">' + s.featured.map(function (f) { return '<div class="karya__item"><span class="karya__icon">' + ic(f.icon || 'link') + '</span><div><strong>' + esc(f.title) + '</strong><div class="small muted">' + esc(f.kind) + '</div><span class="link small">' + esc(f.url) + '</span></div></div>'; }).join('') + '</div>' : '',
       keahlian: Object.keys(s.skills).length ? '<div class="skills">' + Object.keys(s.skills).map(function (k) {
@@ -335,7 +354,7 @@
     var share = own ? '<div class="share"><div><strong>Bagikan profil</strong><p class="small muted">' + (s.publicLink ? 'Siapa pun dengan tautan ini bisa melihat profilmu (tanpa NISN dan WhatsApp).' : 'Mati. Hanya siswa Adzkia yang bisa melihat profilmu.') + '</p>' + (s.publicLink ? '<span class="share__link">' + ic('link') + 'adzvance.com/u/' + s.id + '</span>' : '') + '</div><label class="switch"><input type="checkbox"' + (s.publicLink ? ' checked' : '') + ' data-act="public-link" aria-label="Bagikan profil"><span></span></label></div>' : '';
     return '<div class="profile"><div class="profile__banner banner--' + (s.banner || 'peach') + '"' + banner + '></div><div class="profile__top">' + photo + actions + '</div><div class="profile__body">' +
       '<h1 class="profile__name">' + esc(s.name) + '</h1>' + (s.headline ? '<p class="profile__headline">' + esc(s.headline) + '</p>' : '') +
-      '<div class="profile__meta"><span>' + ic('graduation-cap') + esc(s.kelas) + ', SMA Adzkia</span>' + (own ? '<span class="mono"><abbr>NISN</abbr> ' + s.nisn + '</span>' : '') + '</div>' +
+      '<div class="profile__meta"><span>' + ic('graduation-cap') + esc(s.kelas) + ', SMA Islam Plus Adzkia</span>' + (own ? '<span class="mono"><abbr>NISN</abbr> ' + s.nisn + '</span>' : '') + '</div>' +
       (s.orgs.length ? '<div class="orgs">' + s.orgs.map(function (o) { return A.org(o); }).join('') + '</div>' : '') + share + body + '</div></div>';
   }
   V.profil = function () { return '<div class="container page">' + profileView(A.me(), 'own') + '</div>'; };
@@ -364,14 +383,19 @@
       '<div class="field"><label for="pe-bio">Tentang saya</label><textarea class="input" id="pe-bio" maxlength="200" data-bind="bio">' + esc(s.bio) + '</textarea></div>' +
       '<div class="field"><span class="label">Organisasi <span class="lock">Diatur admin</span></span><div class="orgs">' + (s.orgs.length ? s.orgs.map(function (o) { return A.org(o); }).join('') : '<span class="small muted">Belum ada</span>') + '</div></div></section>' +
       '<section class="edit-card">' + picker('interests', A.S.interests, s.interests) + picker('skills', A.S.skills, Object.keys(s.skills)) + '</section>' +
-      '<section class="edit-card"><div class="pblock__head"><h2>Prestasi</h2><button class="btn btn--quiet" type="button" data-act="add-achv">' + ic('plus') + 'Tambah</button></div>' +
-      (s.achievements.length ? s.achievements.map(function (a) { return '<div class="edit-row"><span>' + ic('award') + '<strong>' + esc(a.title) + '</strong> <span class="muted small">' + esc(a.level) + ', ' + a.year + '</span>' + (a.verified ? ' <span class="verified">' + ic('badge-check') + 'Terverifikasi</span>' : '') + '</span><button class="icon-btn" type="button" data-act="del-achv" data-id="' + a.id + '" aria-label="Hapus">' + ic('trash-2') + '</button></div>'; }).join('') : '<p class="small muted">Belum ada prestasi.</p>') + '</section>' +
+      '<section class="edit-card"><div class="pblock__head"><h2>Lomba dan prestasi</h2><button class="btn btn--quiet" type="button" data-act="new-fame">' + ic('plus') + 'Tambah prestasi</button></div><p class="small muted">Termasuk prestasi sebelum ada ADZVANCE. Diverifikasi OSIS sebelum tampil.</p>' +
+      (A.entriesOf(s.id).length ? A.entriesOf(s.id).map(function (e) {
+        var st = A.STATUS[e.status], act = e.status === 'joined' || e.status === 'info' || e.status === 'rejected';
+        return '<div class="edit-row"><span><strong>' + esc(e.title) + '</strong> <span class="muted small">' + esc(e.level) + (e.result !== 'Terdaftar' ? ', ' + esc(A.resLabel(e)) : '') + '</span><br><span class="status-chip status-chip--' + (st[2] || 'plain') + '">' + ic(st[0]) + st[1] + '</span></span>' +
+          (act ? '<button class="btn btn--quiet" type="button" data-act="' + (e.lomba && e.status === 'joined' ? 'view-lomba-go' : 'entry-open') + '" data-id="' + (e.lomba && e.status === 'joined' ? e.lomba : e.id) + '">' + ic('pencil') + 'Perbarui</button>' : '') + '</div>';
+      }).join('') : '<p class="small muted">Belum ada.</p>') + '</section>' +
       '<section class="edit-card"><div class="pblock__head"><h2>Karya unggulan</h2><button class="btn btn--quiet" type="button" data-act="add-karya">' + ic('plus') + 'Tambah</button></div>' +
       (s.featured.length ? s.featured.map(function (f) { return '<div class="edit-row"><span>' + ic(f.icon || 'link') + '<strong>' + esc(f.title) + '</strong> <span class="muted small">' + esc(f.kind) + '</span></span><button class="icon-btn" type="button" data-act="del-karya" data-id="' + f.id + '" aria-label="Hapus">' + ic('trash-2') + '</button></div>'; }).join('') : '<p class="small muted">Tambahkan proyek, tulisan, atau karya.</p>') + '</section></div>' +
       '<div class="stack"><section class="edit-card"><h2>Bagian profil</h2><p class="small muted">Atur urutan dan sembunyikan bagian.</p><ol class="order">' +
       s.order.map(function (k, i) { var hid = s.hidden.indexOf(k) !== -1; return '<li class="' + (hid ? 'is-hidden' : '') + '"><span>' + SECTIONS[k] + '</span><span class="order__btns"><button class="icon-btn" type="button" data-act="sec-up" data-val="' + k + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Naikkan">' + ic('chevron-up') + '</button><button class="icon-btn" type="button" data-act="sec-down" data-val="' + k + '"' + (i === s.order.length - 1 ? ' disabled' : '') + ' aria-label="Turunkan">' + ic('chevron-down') + '</button><label class="switch switch--s"><input type="checkbox"' + (hid ? '' : ' checked') + ' data-act="sec-toggle" data-val="' + k + '" aria-label="Tampilkan ' + SECTIONS[k] + '"><span></span></label></span></li>'; }).join('') + '</ol></section>' +
       '<section class="edit-card"><h2>Tautan</h2><div class="field"><label for="pe-li">LinkedIn</label><input class="input" id="pe-li" value="' + esc(s.linkedin) + '" data-bind="linkedin"></div>' +
       '<div class="setting"><div><strong>Tampilkan LinkedIn</strong></div><label class="switch"><input type="checkbox"' + (s.showLinkedin ? ' checked' : '') + ' data-act="show-li" aria-label="Tampilkan LinkedIn"><span></span></label></div>' +
-      '<div class="field"><label for="pe-wa">WhatsApp <span class="lock">Hanya untuk anggota tim</span></label><input class="input" id="pe-wa" inputmode="tel" value="' + esc(s.wa) + '" data-bind="wa"></div></section></div></div></div>';
+      '<div class="field"><label for="pe-wa">WhatsApp <span class="lock">Hanya untuk anggota tim</span></label><input class="input" id="pe-wa" inputmode="tel" value="' + esc(s.wa) + '" data-bind="wa"></div></section>' +
+      '<section class="edit-card"><h2>Wall of Fame</h2><div class="setting"><div><strong>Tampilkan saya di Wall of Fame publik</strong><p>Kalau dimatikan, orang di luar ADZVANCE tidak melihat namamu. Siswa Adzkia tetap bisa.</p></div><label class="switch"><input type="checkbox"' + (s.fameHidden ? '' : ' checked') + ' data-act="fame-public" aria-label="Tampilkan saya di Wall of Fame publik"><span></span></label></div></section></div></div></div>';
   };
 })();
