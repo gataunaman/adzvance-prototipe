@@ -1,11 +1,11 @@
 /* ADZVANCE prototype: state, helpers, routing. Plain script, no build step. */
 (function () {
-  var KEY = 'adzvance-demo-v4';
+  var KEY = 'adzvance-demo-v5';
   var A = window.A = { V: {}, ACT: {}, FORM: {}, ui: { filters: {}, q: '', subj: 'all', skill: null, kelas: null, viewUser: null, viewLomba: 'esai-energi', viewThread: 'th1', editLomba: null, menu: false } };
 
   /* ---------- store ---------- */
   function load() {
-    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.version === 4) return s; } } catch (e) {}
+    try { var raw = localStorage.getItem(KEY); if (raw) { var s = JSON.parse(raw); if (s && s.version === 5) return s; } } catch (e) {}
     return window.SEED();
   }
   A.S = load();

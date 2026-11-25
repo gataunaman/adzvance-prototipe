@@ -3,7 +3,7 @@
 window.SEED = function () {
   function mk(off) { var t = new Date(); t.setDate(1); t.setMonth(t.getMonth() + off); return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2); }
   return {
-    version: 4,
+    version: 5,
     me: null,             // logged-in student id (null = logged out)
     dev: false,           // developer session
     adminMode: false,     // admin is currently in admin view
@@ -145,6 +145,11 @@ window.SEED = function () {
     /* One entry per student/team per competition (or per tier of a ladder competition).
      * status: joined → pending → (info) → verified | rejected. month = the edition (month it was verified).
      * Wall-eligible: see A.eligible in core.js. "Terdaftar", "Tidak lolos", "Mundur" are private. */
+    editionNotes: {
+      [mk(0)]: 'Terima kasih sudah membawa nama Adzkia sejauh ini. Kami bangga pada kalian.',
+      [mk(-1)]: 'Bulan yang ramai lomba. Selamat untuk semua yang sudah berani tampil.',
+      [mk(-2)]: 'Awal semester yang baik. Semoga jadi pembuka untuk bulan-bulan berikutnya.'
+    },
     entries: [
       { id: 'e1', title: 'Lomba Karya Tulis Ilmiah Remaja', org: 'LIPI Muda', cat: 'sains', level: 'Nasional', who: ['nadia', 'fajar'], result: 'Juara 1', status: 'verified', proofLink: 'instagram.com/p/adzkia-kti', d: -4, month: mk(0), source: 'osis' },
       { id: 'e2', title: 'OSN Fisika', org: 'Puspresnas', cat: 'sains', level: 'Provinsi', ladder: true, prev: 'e5', who: ['dimas'], result: 'Medali perak', status: 'verified', proofLink: 'pusatprestasinasional.kemdikbud.go.id', cert: 'piagam-osn.pdf', d: -9, month: mk(0), source: 'siswa' },

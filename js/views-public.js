@@ -69,7 +69,7 @@
     var keys = editions(), k = currentEdition(keys), list = k ? inEdition(k) : [];
     if (!k) return '<div class="pub-wrap pub-page">' + A.empty('star', 'Belum ada prestasi.') + '</div>';
     return '<div class="pub-wrap wall-page"><header class="masthead" data-enter><p class="masthead__kicker">Wall of Fame</p>' +
-      '<div class="masthead__row"><h1>' + A.monthLabel(k) + '</h1><div class="masthead__nav">' + arrows(keys, k) + '</div></div>' +
+      '<div class="masthead__row"><h1>' + A.monthLabel(k) + '</h1><div class="masthead__nav">' + arrows(keys, k) + '</div></div>' + ((A.S.editionNotes || {})[k] ? '<p class="masthead__note">' + esc(A.S.editionNotes[k]) + '</p>' : '') +
       (A.S.me ? '<button class="pub-btn pub-btn--quiet masthead__submit" type="button" data-act="new-fame">' + ic('plus') + 'Kirim prestasi</button>' : '') + '</header>' +
       lead(list[0]) + (list.length > 1 ? roll(list.slice(1)) : '') + '</div>';
   };
@@ -90,39 +90,57 @@
   };
 
   /* ---------- public home ---------- */
+  function ketua() { var k = A.S.students.find(function (s) { return s.ketua; }); return k ? k.name : ''; }
+  function prevTile(k) {
+    var top = inEdition(k)[0];
+    return '<a class="ptile" href="#wall" data-act="fame-month" data-val="' + k + '">' +
+      '<span class="ptile__media">' + (top && top.photo ? '<img src="' + top.photo + '" alt="">' : '<img class="ptile__crest" src="img/adzkia-logo.png" alt="">') + '</span>' +
+      '<span class="ptile__month">' + A.monthLabel(k) + '</span>' + (top ? '<span class="ptile__top">' + esc(A.resLabel(top)) + ', ' + esc(top.title) + '</span>' : '') + '</a>';
+  }
   V.home = function () {
     var keys = editions(), k = keys.indexOf(A.monthKey(0)) !== -1 ? A.monthKey(0) : keys[0], list = k ? inEdition(k) : [];
+    var prev = keys.filter(function (x) { return x !== k; }).slice(0, 3);
     return '<div class="home">' +
       '<section class="pub-wrap hero" data-enter><div class="hero__text"><p class="hero__kicker">' + SCHOOL + '</p>' +
       '<h1>Prestasi siswa Adzkia, setiap bulan.</h1><p class="hero__lede">Ruang untuk merayakan kerja keras siswa ' + SCHOOL + '.</p>' +
       '<div class="hero__actions"><a class="pub-btn" href="#wall">Buka edisi ' + (k ? A.monthLabel(k).split(' ')[0] : 'terbaru') + '</a><a class="pub-btn pub-btn--quiet" href="#masuk">Masuk siswa</a></div></div>' +
       '<figure class="hero__photo"><img src="' + IMG + 'life-4.jpg" alt="Siswi SMA Islam Plus Adzkia Medan belajar bersama"></figure></section>' +
+      '<section class="statement"><div class="pub-wrap"><img class="statement__crest" src="img/adzkia-logo.png" alt=""><p>Setiap lomba dimulai dari satu keputusan kecil: mencoba. Halaman ini ada supaya usaha itu tidak hilang begitu saja.</p></div></section>' +
       (list.length ? '<section class="pub-wrap edition"><div class="edition__head"><h2>Edisi ' + A.monthLabel(k) + '</h2><a class="textlink" href="#wall">Semua edisi' + ic('arrow-right') + '</a></div>' + lead(list[0]) + '</section>' : '') +
-      '<section class="letter"><div class="pub-wrap letter__in"><h2>Dari OSIS</h2><div class="letter__body">' +
-      '<p>Setiap bulan, ada teman kita yang pulang membawa piala, medali, atau pengalaman berharga dari sebuah lomba. Website ini kami buat agar usaha itu tidak berlalu begitu saja.</p>' +
-      '<p>Menang atau belum, berani mencoba sudah layak dihargai. Semoga halaman ini membuat lebih banyak teman ikut melangkah.</p>' +
-      '<p class="letter__sign">OSIS ' + SCHOOL + '</p></div></div></section>' +
-      '<section class="motto"><img src="' + IMG + 'life-pair.jpg" alt=""><div class="pub-wrap motto__in"><p class="motto__line">Dikelola OSIS ' + SCHOOL + '.</p><a class="textlink textlink--light" href="#tentang">Tentang ADZVANCE' + ic('arrow-right') + '</a></div></section></div>';
+      '<section class="letter"><div class="pub-wrap letter__in"><div><p class="letter__label">Sambutan</p><h2>Dari OSIS, untuk teman-teman.</h2></div><div class="letter__body">' +
+      '<p class="letter__lead">Assalamu&rsquo;alaikum. Banyak cerita baik dari siswa Adzkia hanya terdengar sebentar di grup kelas, lalu hilang. Kami membuat ADZVANCE agar cerita-cerita itu tercatat dan bisa dilihat lagi oleh teman, guru, dan orang tua.</p>' +
+      '<p>Kami tahu tidak semua usaha berakhir di podium. Ada yang berlatih berminggu-minggu lalu belum lolos, ada yang baru pertama kali berani mendaftar. Semua itu tetap bagian dari perjalanan, dan kami ingin kalian tahu bahwa usaha itu terlihat.</p>' +
+      '<p>Tidak perlu menunggu siap untuk mencoba. Menang atau belum, usahamu tetap berarti bagi kami.</p>' +
+      '<p class="letter__sign"><span>' + esc(ketua()) + '</span>Ketua OSIS ' + SCHOOL + ', 2026/2027</p></div></div></section>' +
+      (prev.length ? '<section class="pub-wrap prev"><div class="edition__head"><h2>Edisi sebelumnya</h2><a class="textlink" href="#wall">Wall of Fame' + ic('arrow-right') + '</a></div><div class="prev__grid">' + prev.map(prevTile).join('') + '</div></section>' : '') +
+      '<section class="motto"><img src="' + IMG + 'life-pair.jpg" alt=""><div class="pub-wrap motto__in"><p class="motto__line">Untuk kamu yang sedang bersiap: semoga lelahmu jadi berkah.</p><a class="textlink textlink--light" href="#tentang">Tentang ADZVANCE' + ic('arrow-right') + '</a></div></section></div>';
   };
 
   /* ---------- tentang kami ---------- */
   V.tentang = function () {
+    var hopes = ['Siswa Adzkia saling mengenal lewat karya, bukan hanya lewat kelas.', 'Lebih banyak siswa berani mengikuti lomba pertamanya.', 'Guru dan orang tua ikut melihat dan mendoakan usaha anak-anak mereka.'];
     return '<div class="about">' +
       '<section class="about__hero"><img src="' + IMG + 'life-group.jpg" alt="Siswa SMA Islam Plus Adzkia Medan belajar bersama"><div class="pub-wrap about__hero-in" data-enter><h1>Tentang kami</h1></div></section>' +
       '<section class="pub-wrap prose-row"><h2>ADZVANCE</h2><div class="prose">' +
-      '<p class="prose__lede">Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk mendukung siswa yang berani berlomba, apa pun hasilnya.</p>' +
-      '<p>ADZVANCE bertujuan menjadi wadah berbagi prestasi siswa Adzkia, agar kerja keras mereka dikenal oleh teman, guru, orang tua, dan masyarakat. Setiap prestasi dihargai sama, tanpa peringkat.</p>' +
-      '<p>Kami ingin setiap siswa tahu bahwa kesempatan berprestasi terbuka untuk semua, bukan hanya untuk segelintir orang.</p></div></section>' +
-      '<section class="pub-wrap prose-row"><h2>Harapan kami</h2><div class="prose">' +
-      '<p>Kami berharap lebih banyak siswa berani mengikuti lomba pertamanya, menemukan teman satu tim dari kelas lain, dan saling mendukung sampai hari pengumuman.</p>' +
-      '<p>Prestasi satu siswa adalah kebanggaan seluruh sekolah.</p></div></section>' +
-      '<section class="pub-wrap about__motto"><blockquote>Membangun pemimpin cerdas dan berakhlak mulia.</blockquote></section>' +
+      '<p class="prose__lede">Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk siswa Adzkia yang ikut lomba, dan untuk siapa pun yang ingin melihat usaha mereka.</p>' +
+      '<p>ADZVANCE bertujuan menjadi wadah berbagi prestasi siswa Adzkia, agar kerja keras mereka dikenal oleh teman, guru, orang tua, dan masyarakat. Setiap prestasi dihargai sama, tanpa peringkat.</p></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>Mengapa kami membuatnya</h2><div class="prose">' +
+      '<p>Kami melihat teman-teman yang berlatih berminggu-minggu, berangkat pagi ke lomba di kota lain, lalu pulang membawa piagam yang hanya tersimpan di lemari. Kami ingin usaha seperti itu punya tempat.</p>' +
+      '<p>Kami juga ingin adik kelas melihat bahwa kakak-kakaknya pernah memulai dari nol, sehingga mereka berani mencoba juga. Prestasi satu siswa adalah kebanggaan seluruh sekolah.</p></div></section>' +
+      '<section class="hopes"><div class="pub-wrap prose-row prose-row--flat"><h2>Harapan kami</h2><ol class="hopes__list">' + hopes.map(function (h, i) { return '<li><span>' + (i + 1) + '</span>' + h + '</li>'; }).join('') + '</ol></div></section>' +
       '<section class="pub-wrap prose-row"><h2>Sekolah</h2><div class="prose">' +
-      '<p>SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A dengan dua kampus di Kota Medan.</p></div></section>' +
+      '<p class="prose__lede">SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A dengan dua kampus di Kota Medan.</p>' +
+      '<div class="photo-pair"><img src="' + IMG + 'life-4.jpg" alt="Siswi belajar bersama"><img src="' + IMG + 'life-pair.jpg" alt="Siswa membaca di perpustakaan"></div></div></section>' +
+      '<section class="motto-band"><div class="pub-wrap"><img class="statement__crest" src="img/adzkia-logo.png" alt=""><blockquote>Membangun pemimpin cerdas dan berakhlak mulia.</blockquote></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>Pengelola</h2><div class="prose"><dl class="rows">' +
+      '<div><dt>Dikelola oleh</dt><dd>OSIS ' + SCHOOL + ', periode 2026/2027</dd></div>' +
+      '<div><dt>Ketua OSIS</dt><dd>' + esc(ketua()) + '</dd></div></dl></div></section>' +
       '<section class="pub-wrap prose-row"><h2>Untuk orang tua</h2><div class="prose">' +
-      '<p>Prestasi anak Anda dapat dilihat dan dibagikan dari website ini. Untuk koreksi atau penghapusan data, OSIS siap membantu.</p></div></section>' +
+      '<p>Prestasi anak Anda dapat dilihat dan dibagikan dari website ini. Kami berharap halaman ini menjadi satu cara kecil untuk ikut merayakan usaha mereka di rumah.</p>' +
+      '<p>Untuk koreksi atau penghapusan data, OSIS siap membantu.</p></div></section>' +
+      '<section class="pub-wrap closing"><p>Kalau hari ini kamu belum menang, tidak apa-apa. Kami tetap senang kamu mencoba.</p></section>' +
       '<section class="pub-wrap prose-row"><h2>Kontak</h2><div class="prose">' +
-      '<p class="prose__contact">OSIS, lewat Instagram sekolah <a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></p></div></section></div>';
+      '<p class="prose__contact">Instagram <a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></p></div></section></div>';
   };
 
   /* ---------- kebijakan privasi ---------- */
