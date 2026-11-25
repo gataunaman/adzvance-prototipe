@@ -94,10 +94,14 @@
     var keys = editions(), k = keys.indexOf(A.monthKey(0)) !== -1 ? A.monthKey(0) : keys[0], list = k ? inEdition(k) : [];
     return '<div class="home">' +
       '<section class="pub-wrap hero" data-enter><div class="hero__text"><p class="hero__kicker">' + SCHOOL + '</p>' +
-      '<h1>Prestasi siswa Adzkia, setiap bulan.</h1>' +
+      '<h1>Prestasi siswa Adzkia, setiap bulan.</h1><p class="hero__lede">Ruang untuk merayakan kerja keras siswa ' + SCHOOL + '.</p>' +
       '<div class="hero__actions"><a class="pub-btn" href="#wall">Buka edisi ' + (k ? A.monthLabel(k).split(' ')[0] : 'terbaru') + '</a><a class="pub-btn pub-btn--quiet" href="#masuk">Masuk siswa</a></div></div>' +
       '<figure class="hero__photo"><img src="' + IMG + 'life-4.jpg" alt="Siswi SMA Islam Plus Adzkia Medan belajar bersama"></figure></section>' +
       (list.length ? '<section class="pub-wrap edition"><div class="edition__head"><h2>Edisi ' + A.monthLabel(k) + '</h2><a class="textlink" href="#wall">Semua edisi' + ic('arrow-right') + '</a></div>' + lead(list[0]) + '</section>' : '') +
+      '<section class="letter"><div class="pub-wrap letter__in"><h2>Dari OSIS</h2><div class="letter__body">' +
+      '<p>Setiap bulan, ada teman kita yang pulang membawa piala, medali, atau pengalaman berharga dari sebuah lomba. Website ini kami buat agar usaha itu tidak berlalu begitu saja.</p>' +
+      '<p>Menang atau belum, berani mencoba sudah layak dihargai. Semoga halaman ini membuat lebih banyak teman ikut melangkah.</p>' +
+      '<p class="letter__sign">OSIS ' + SCHOOL + '</p></div></div></section>' +
       '<section class="motto"><img src="' + IMG + 'life-pair.jpg" alt=""><div class="pub-wrap motto__in"><p class="motto__line">Dikelola OSIS ' + SCHOOL + '.</p><a class="textlink textlink--light" href="#tentang">Tentang ADZVANCE' + ic('arrow-right') + '</a></div></section></div>';
   };
 
@@ -107,10 +111,16 @@
       '<section class="about__hero"><img src="' + IMG + 'life-group.jpg" alt="Siswa SMA Islam Plus Adzkia Medan belajar bersama"><div class="pub-wrap about__hero-in" data-enter><h1>Tentang kami</h1></div></section>' +
       '<section class="pub-wrap prose-row"><h2>ADZVANCE</h2><div class="prose">' +
       '<p class="prose__lede">Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk mendukung siswa yang berani berlomba, apa pun hasilnya.</p>' +
-      '<p>ADZVANCE bertujuan menjadi wadah berbagi prestasi siswa Adzkia, agar kerja keras mereka dikenal oleh teman, guru, orang tua, dan masyarakat. Setiap prestasi dihargai sama, tanpa peringkat.</p></div></section>' +
-      '<section class="pub-wrap prose-row"><h2>Sekolah</h2><div class="prose">' +
-      '<p>SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A di Kota Medan.</p></div></section>' +
+      '<p>ADZVANCE bertujuan menjadi wadah berbagi prestasi siswa Adzkia, agar kerja keras mereka dikenal oleh teman, guru, orang tua, dan masyarakat. Setiap prestasi dihargai sama, tanpa peringkat.</p>' +
+      '<p>Kami ingin setiap siswa tahu bahwa kesempatan berprestasi terbuka untuk semua, bukan hanya untuk segelintir orang.</p></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>Harapan kami</h2><div class="prose">' +
+      '<p>Kami berharap lebih banyak siswa berani mengikuti lomba pertamanya, menemukan teman satu tim dari kelas lain, dan saling mendukung sampai hari pengumuman.</p>' +
+      '<p>Prestasi satu siswa adalah kebanggaan seluruh sekolah.</p></div></section>' +
       '<section class="pub-wrap about__motto"><blockquote>Membangun pemimpin cerdas dan berakhlak mulia.</blockquote></section>' +
+      '<section class="pub-wrap prose-row"><h2>Sekolah</h2><div class="prose">' +
+      '<p>SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A dengan dua kampus di Kota Medan.</p></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>Untuk orang tua</h2><div class="prose">' +
+      '<p>Prestasi anak Anda dapat dilihat dan dibagikan dari website ini. Untuk koreksi atau penghapusan data, OSIS siap membantu.</p></div></section>' +
       '<section class="pub-wrap prose-row"><h2>Kontak</h2><div class="prose">' +
       '<p class="prose__contact">OSIS, lewat Instagram sekolah <a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></p></div></section></div>';
   };
