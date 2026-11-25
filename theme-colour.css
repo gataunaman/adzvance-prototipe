@@ -1,0 +1,114 @@
+/* Colour theme preview (2026-11-25). Switch: Prototype.html?theme=colour (remembered), ?theme=off clears it.
+ * Applies to the logged-in app and admin only; public pages keep their editorial look.
+ * Type: Bricolage Grotesque for titles and numbers, Instrument Sans for text, Instrument Serif italic for three moments
+ * (greeting name, result words, empty states). Colour roles: orange = action, urgency, "you";
+ * category colour = identity, at most one solid block per screen; chips stay neutral with a dot. */
+
+html[data-theme="colour"] {
+  --t-orange: #F26A1B; --t-orange-hover: #E15A0C; --t-orange-deep: #C2410C; --t-peach: #FFE6D5;
+  --t-ink: #1A1410; --t-paper: #FAF6F0; --t-surface: #FFFFFF; --t-rule: #ECE4D8; --t-rule-2: #E0D5C5;
+  --c-sains: #2B5CE6; --c-esai: #6D4AE0; --c-debat: #C92A62; --c-tek: #087A55; --c-seni: #FFC53D;
+}
+html[data-theme="colour"] [data-cat="sains"], html[data-theme="colour"] [data-subj="mat"], html[data-theme="colour"] [data-subj="fis"], html[data-theme="colour"] [data-subj="kim"], html[data-theme="colour"] [data-subj="bio"] { --cat: var(--c-sains); --cat-ink: #fff; --crest-inv: 1; }
+html[data-theme="colour"] [data-cat="esai"], html[data-theme="colour"] [data-subj="bin"] { --cat: var(--c-esai); --cat-ink: #fff; --crest-inv: 1; }
+html[data-theme="colour"] [data-cat="debat"], html[data-theme="colour"] [data-subj="big"] { --cat: var(--c-debat); --cat-ink: #fff; --crest-inv: 1; }
+html[data-theme="colour"] [data-cat="tek"] { --cat: var(--c-tek); --cat-ink: #fff; --crest-inv: 1; }
+html[data-theme="colour"] [data-cat="seni"] { --cat: var(--c-seni); --cat-ink: var(--t-ink); --crest-inv: 0; }
+html[data-theme="colour"] [data-cat="orange"], html[data-theme="colour"] [data-subj="osis"] { --cat: var(--t-orange); --cat-ink: var(--t-ink); --crest-inv: 0; }
+
+/* ---------- base: warm paper, white surfaces, orange accents ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) {
+  --color-paper: var(--t-paper); --color-surface: var(--t-surface); --color-rule: var(--t-rule); --color-rule-2: var(--t-rule-2);
+  --color-accent: var(--t-orange); --color-accent-hover: var(--t-orange-hover); --color-accent-deep: var(--t-orange-deep); --color-accent-soft: var(--t-peach);
+  --color-ink: var(--t-ink); --color-focus: var(--t-orange-deep);
+  background: var(--t-paper);
+}
+
+/* ---------- type ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) :is(h1, h2, h3, .figure, .card__title, .row__title, .post__name, .thread__title, .profile__name, .famerow__main strong, .invite__comp) {
+  font-family: "Bricolage Grotesque", var(--font-body) !important; font-weight: 700 !important; font-style: normal; letter-spacing: -0.025em !important; font-variation-settings: "opsz" 96;
+}
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.phead h1, .home-head h1) { font-size: clamp(2.1rem, 3.6vw, 2.9rem) !important; line-height: 1.02; }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.section-title h2, .section-title h3, .dsec h2, .profile .pblock h2) { font-size: 1.35rem !important; line-height: 1.15 !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .profile__name { font-size: clamp(2rem, 3.2vw, 2.6rem) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.card__title, .row__title, .post__name, .thread__title, .invite__comp) { font-size: 1.08rem !important; letter-spacing: -0.015em !important; line-height: 1.25; font-variation-settings: "opsz" 24; }
+/* the three serif moments */
+html[data-theme="colour"] body:not([data-kind="public"]) .greet { font-family: var(--font-display) !important; font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--t-orange-deep); }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.famerow__res, .fres) { font-family: var(--font-display) !important; font-style: italic !important; font-weight: 400 !important; color: var(--t-orange-deep) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .empty p { font-family: var(--font-display); font-style: italic; font-size: 1.3rem; color: var(--color-ink-2); }
+
+/* ---------- colour roles ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) .btn--primary { background: var(--t-orange) !important; color: var(--t-ink) !important; border-color: transparent !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .btn--primary:hover { background: var(--t-orange-hover) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .shell--siswa.bar { border-top: 4px solid var(--t-orange); background: color-mix(in oklab, var(--t-paper) 92%, transparent); }
+html[data-theme="colour"] body:not([data-kind="public"]) .shell--siswa .nav a { padding: 8px 14px !important; margin-right: 2px; border-radius: 999px; box-shadow: none !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .shell--siswa .nav a:hover { background: #F2EADF; color: var(--t-ink); }
+html[data-theme="colour"] body:not([data-kind="public"]) .shell--siswa .nav a[aria-current="page"] { background: var(--t-peach) !important; color: var(--t-orange-deep) !important; box-shadow: none !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .tabbar a[aria-current="page"] { background: var(--t-peach); color: var(--t-orange-deep); }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(a.link, .section-title .link) { color: var(--t-orange-deep); text-decoration-color: color-mix(in oklab, var(--t-orange-deep) 35%, transparent); }
+html[data-theme="colour"] body:not([data-kind="public"]) .switch input:checked + span { background: var(--t-orange) !important; border-color: var(--t-orange) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.tab[aria-pressed="true"], .toc a:hover) { box-shadow: inset 0 -2px 0 var(--t-orange) !important; color: var(--t-ink); }
+html[data-theme="colour"] body:not([data-kind="public"]) .bell .count { background: var(--t-orange) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .chip[aria-pressed="true"] { background: var(--t-peach) !important; color: var(--t-orange-deep) !important; border-color: transparent !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.card, .joinbox, .edit-card) { background: var(--t-surface); border-color: var(--t-rule); }
+
+/* chips stay neutral, with an 8px category dot */
+html[data-theme="colour"] body:not([data-kind="public"]) :is(.tag--sains, .tag--esai, .tag--debat, .tag--tek, .tag--seni)::before { content: ""; display: inline-block !important; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+html[data-theme="colour"] body:not([data-kind="public"]) .tag--sains::before { background: var(--c-sains); }
+html[data-theme="colour"] body:not([data-kind="public"]) .tag--esai::before { background: var(--c-esai); }
+html[data-theme="colour"] body:not([data-kind="public"]) .tag--debat::before { background: var(--c-debat); }
+html[data-theme="colour"] body:not([data-kind="public"]) .tag--tek::before { background: var(--c-tek); }
+html[data-theme="colour"] body:not([data-kind="public"]) .tag--seni::before { background: var(--c-seni); }
+
+/* ---------- beranda: the next deadline is the one solid category block ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] { position: relative; overflow: hidden; background: var(--cat) !important; color: var(--cat-ink) !important; border: 0; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] :is(h2, h2 a, p, .feature__days, .feature__body span) { color: inherit !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .feature__days .figure { font-size: 96px !important; line-height: 0.88; color: var(--cat-ink) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .tag { border-color: color-mix(in srgb, currentColor 38%, transparent) !important; color: inherit !important; background: transparent !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .tag::before { display: none !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .btn--primary { background: #fff !important; color: var(--t-ink) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .btn--dark { background: transparent !important; color: inherit !important; border-color: color-mix(in srgb, currentColor 40%, transparent) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat]::after { content: ""; position: absolute; right: 28px; bottom: 50%; transform: translateY(50%); width: 208px; height: 200px; border-radius: 50%; background: url("img/adzkia-logo.png") left center / auto 100% no-repeat; filter: grayscale(1) contrast(1.3); mix-blend-mode: soft-light; opacity: 0.55; pointer-events: none; }
+html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] > * { position: relative; z-index: 1; }
+
+/* deadline rows: a thin category bar; recommendations: small cards with a category top band */
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet:not(.sheet--rec) .row[data-cat] { box-shadow: inset 3px 0 0 var(--cat); padding-left: 14px; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border: 0 !important; background: transparent !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec .row[data-cat] { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; grid-template-rows: auto 1fr; gap: 10px; align-items: start; padding: 14px !important; background: var(--t-surface); border: 1px solid var(--t-rule) !important; border-top: 6px solid var(--cat) !important; border-radius: 12px; box-shadow: none; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec .row__days { grid-column: 1 !important; grid-row: 1 !important; display: flex; align-items: baseline; gap: 6px; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec .row__days .figure { font-size: 1.7rem !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec .row__days + div { grid-column: 1 / -1 !important; grid-row: 2 !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec .row__actions { grid-column: 2 !important; grid-row: 1 !important; }
+
+/* ---------- lomba cards: category top band, urgent days in orange ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) .card[data-cat] { border-top: 6px solid var(--cat) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .card[data-cat]:hover { border-top-width: 6px !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .card--hot .card__days, html[data-theme="colour"] body:not([data-kind="public"]) .card--hot .card__date { color: var(--t-orange-deep) !important; }
+
+/* ---------- profile: banner in the student's first-interest colour ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) .profile__banner[data-cat]:not([style*="background-image"]) { position: relative; overflow: hidden; background: var(--cat) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .profile__banner[data-cat]:not([style*="background-image"])::after { content: ""; position: absolute; right: 48px; bottom: 50%; transform: translateY(50%); width: 125px; height: 120px; border-radius: 50%; background: url("img/adzkia-logo.png") left center / auto 100% no-repeat; filter: grayscale(1) contrast(1.3); mix-blend-mode: soft-light; opacity: 0.6; }
+
+/* ---------- forum: subject bars, best answer rule, orange hearts ---------- */
+html[data-theme="colour"] body:not([data-kind="public"]) .thread[data-subj] { box-shadow: inset 3px 0 0 var(--cat, var(--t-orange)); padding-left: 16px !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .reply--best { background: transparent !important; border: 0 !important; border-left: 2px solid var(--c-tek) !important; border-radius: 0 !important; padding: 4px 0 4px 16px !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .reply--best .tag--hot { background: transparent !important; color: var(--c-tek) !important; padding-left: 0; }
+html[data-theme="colour"] body:not([data-kind="public"]) .reply__actions .btn { color: var(--t-ink); }
+html[data-theme="colour"] body:not([data-kind="public"]) .reply__actions .btn[aria-pressed="true"] { color: var(--t-orange) !important; }
+html[data-theme="colour"] body:not([data-kind="public"]) .reply__actions .btn[aria-pressed="true"] svg { fill: currentColor; }
+
+/* ---------- phone ---------- */
+@media (max-width: 44rem) {
+  html[data-theme="colour"] body:not([data-kind="public"]) .sheet--rec { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat] .feature__days .figure { font-size: 72px !important; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .card__days { display: inline-flex !important; align-items: baseline; gap: 4px; width: auto !important; padding: 4px 12px !important; border-radius: 999px; background: var(--t-peach) !important; color: var(--t-orange-deep) !important; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .card__days .figure { font-size: 1.05rem !important; line-height: 1.2; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .card--hot .card__days { background: var(--t-orange) !important; color: var(--t-ink) !important; }
+}
+html[data-theme="colour"] body:not([data-kind="public"]) .home .well--invite { margin-bottom: 28px; }
+@media (max-width: 44rem) {
+  html[data-theme="colour"] body:not([data-kind="public"]) .card { display: flex !important; flex-direction: column; gap: 0; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .card__poster { min-height: 0 !important; aspect-ratio: auto !important; height: auto !important; width: auto !important; padding: 16px 16px 0 !important; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .card__body { padding: 10px 52px 16px 16px !important; }
+  html[data-theme="colour"] body:not([data-kind="public"]) .feature[data-cat]::after { display: none; }
+}

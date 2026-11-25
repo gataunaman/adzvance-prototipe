@@ -120,7 +120,7 @@ window.SEED = function () {
     ],
 
     threads: [
-      { id: 'th0', title: 'Aturan forum dan cara menandai jawaban terbaik', subj: 'osis', author: 'aisyah', ago: '1 minggu lalu', pinned: true, body: 'Tanya dengan jelas, sertakan soalnya, dan tandai jawaban terbaik kalau sudah terbantu.', likes: ['rizky', 'nadia'], replies: [] },
+      { id: 'th0', title: 'Ada yang punya soal OSN Kimia kabupaten tahun lalu?', subj: 'kim', author: 'aisyah', ago: '1 minggu lalu', body: 'Mau latihan bareng sebelum seleksi. Kalau ada, boleh dibagi di sini.', likes: ['rizky', 'nadia'], replies: [] },
       { id: 'th1', title: 'Cara cepat integral parsial?', subj: 'mat', author: 'fajar', ago: '2 hari lalu', body: 'Untuk soal seperti integral x kali e pangkat x, ada cara cepat menentukan u dan dv tanpa coba-coba?', likes: ['rizky', 'nadia', 'dimas', 'salsa', 'alya', 'aisyah'], replies: [
         { id: 'r1', author: 'nadia', body: 'Pakai urutan LIATE: logaritma, invers trigonometri, aljabar, trigonometri, eksponen. Yang muncul lebih dulu jadi u. Jadi u = x dan dv = e pangkat x dx.', likes: ['fajar', 'rizky', 'dimas'], parent: null, best: true },
         { id: 'r2', author: 'fajar', body: 'Mantap, langsung kepakai di latihan tadi.', likes: ['nadia'], parent: 'r1' },

@@ -383,3 +383,34 @@ body[data-kind="public"] { padding-bottom: 0; }
   .rows > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .photo-pair img + img { aspect-ratio: 4 / 3; }
 }
+
+/* ---------- checker 2 fixes (public) ---------- */
+/* no hairline butting into a colour band */
+.statement + .edition { background: none; }
+.prose-row:has(+ .hopes), .prose-row:has(+ .motto-band), .hopes .prose-row { background: none; }
+/* lead without a photo: a designed certificate on the school orange */
+.lead__media.is-cert { background: var(--color-accent) !important; border: 0 !important; place-items: stretch; }
+.cert { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; gap: 12px; padding: clamp(20px, 3vw, 36px); color: var(--color-ink); text-align: left; }
+.cert__crest { width: 48px; height: 46px; }
+.cert__word { align-self: center; font: italic 400 clamp(3.5rem, 8vw, 7rem)/0.95 var(--font-display); letter-spacing: -0.02em; transition: transform 600ms var(--ease-out); transform-origin: left center; }
+.lead__media:hover .cert__word { transform: scale(1.03); }
+.cert__name { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; max-width: 36ch; }
+/* previous editions: as many columns as editions (max 3); designed peach tile without a photo */
+.prev__grid { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); }
+.ptile__media { aspect-ratio: 5 / 4; }
+.ptile__media:not(.has-photo) { background: var(--color-peach); display: grid; align-content: end; justify-items: start; gap: 10px; padding: clamp(20px, 2.6vw, 32px); }
+.ptile__word { font: italic 400 clamp(2.4rem, 4vw, 3.5rem)/0.95 var(--font-display); color: var(--color-accent-deep); letter-spacing: -0.015em; }
+.ptile__comp { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink); }
+.prev--wall { padding-block: 96px 0; }
+/* wall: the monthly note, signed */
+.masthead__note p:first-child { font: italic 400 1.5rem/1.35 var(--font-display); color: var(--color-ink-2); }
+.masthead__sign { margin-top: 10px; font: 700 0.8125rem/1.2 var(--font-body) !important; font-style: normal !important; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
+/* the Sambutan letter stacks on tablet and phone (placed after the 5fr/7fr rule) */
+@media (max-width: 52rem) {
+  .letter__in { grid-template-columns: minmax(0, 1fr); padding-block: 64px; }
+  .letter h2 { max-width: none; }
+  .prev__grid { grid-template-columns: minmax(0, 1fr); }
+  .ptile__media { aspect-ratio: 16 / 9; }
+}
+.lead__media .cert img, .lead__media:hover .cert img { position: static; inset: auto; width: auto; height: 100%; max-width: none; transform: none; }
+.ptile__media { aspect-ratio: 16 / 10; }

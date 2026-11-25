@@ -33,7 +33,7 @@
   }
   function team(e) {
     var w = A.whoShown(e);
-    return '<ul class="team">' + w.shown.map(function (s) { return '<li><span>' + pname(s) + '</span><span class="team__class">' + esc(s.kelas) + '</span></li>'; }).join('') +
+    return '<ul class="team">' + w.shown.map(function (s) { return '<li><span>' + pname(s) + '</span><span class="team__class">Kelas ' + esc(s.kelas) + '</span></li>'; }).join('') +
       (w.hidden ? '<li><span>' + w.hidden + ' siswa lainnya</span></li>' : '') + (e.ext ? '<li><span>' + esc(e.ext) + '</span></li>' : '') + '</ul>';
   }
   function path(e) {
@@ -51,10 +51,13 @@
       '<span class="roll__lvl">' + esc(e.level) + '</span>' + ic('arrow-up-right', 'roll__go'), 'roll__row');
   }
   function roll(list) { return '<div class="roll">' + list.map(row).join('') + '</div>'; }
-  /* the lead result of an edition: its photo, or the result itself set large */
+  /* the lead result of an edition: its photo, or a designed certificate (orange field, crest, italic result, small-caps name) */
+  function cert(e) {
+    return '<span class="cert"><span class="crest cert__crest"><img src="img/adzkia-logo.png" alt=""></span><span class="cert__word">' + esc(A.resLabel(e)) + '</span><span class="cert__name">' + esc(e.title) + '</span></span>';
+  }
   function lead(e) {
-    var media = e.photo ? '<img src="' + e.photo + '" alt="">' : '<span class="lead__word">' + esc(A.resLabel(e)) + '</span>';
-    return '<article class="lead">' + link(e, media, 'lead__media' + (e.photo ? ' has-photo' : '')) +
+    var media = e.photo ? '<img src="' + e.photo + '" alt="">' : cert(e);
+    return '<article class="lead">' + link(e, media, 'lead__media' + (e.photo ? ' has-photo' : ' is-cert')) +
       '<div class="lead__body"><p class="lead__meta">' + (e.photo ? esc(A.resLabel(e)) + ' · ' : '') + esc(e.level) + ' · ' + esc(e.org) + '</p>' +
       '<h2 class="lead__title">' + link(e, esc(e.title), 'lead__link') + '</h2>' + team(e) + '</div></article>';
   }
@@ -68,10 +71,13 @@
   V.wall = function () {
     var keys = editions(), k = currentEdition(keys), list = k ? inEdition(k) : [];
     if (!k) return '<div class="pub-wrap pub-page">' + A.empty('star', 'Belum ada prestasi.') + '</div>';
-    return '<div class="pub-wrap wall-page"><header class="masthead" data-enter><p class="masthead__kicker">Wall of Fame</p>' +
-      '<div class="masthead__row"><h1>' + A.monthLabel(k) + '</h1><div class="masthead__nav">' + arrows(keys, k) + '</div></div>' + ((A.S.editionNotes || {})[k] ? '<p class="masthead__note">' + esc(A.S.editionNotes[k]) + '</p>' : '') +
+    var note = (A.S.editionNotes || {})[k], prev = keys.filter(function (x) { return x !== k; }).slice(0, 3);
+    return '<div class="wall-page"><div class="pub-wrap"><header class="masthead" data-enter><p class="masthead__kicker">Wall of Fame</p>' +
+      '<div class="masthead__row"><h1>' + A.monthLabel(k) + '</h1><div class="masthead__nav">' + arrows(keys, k) + '</div></div>' +
+      (note ? '<div class="masthead__note"><p>' + esc(note) + '</p><p class="masthead__sign">' + esc(ketua()) + ' · Ketua OSIS</p></div>' : '') +
       (A.S.me ? '<button class="pub-btn pub-btn--quiet masthead__submit" type="button" data-act="new-fame">' + ic('plus') + 'Kirim prestasi</button>' : '') + '</header>' +
-      lead(list[0]) + (list.length > 1 ? roll(list.slice(1)) : '') + '</div>';
+      lead(list[0]) + (list.length > 1 ? roll(list.slice(1)) : '') + '</div>' +
+      (prev.length ? '<section class="pub-wrap prev prev--wall"><div class="edition__head"><h2>Edisi sebelumnya</h2></div>' + prevGrid(prev) + '</section>' : '') + '</div>';
   };
 
   /* ---------- one result ---------- */
@@ -91,12 +97,16 @@
 
   /* ---------- public home ---------- */
   function ketua() { var k = A.S.students.find(function (s) { return s.ketua; }); return k ? k.name : ''; }
+  /* a previous edition: its lead photo, or a designed peach tile with the italic result and the competition */
   function prevTile(k) {
     var top = inEdition(k)[0];
+    var media = top && top.photo ? '<img src="' + top.photo + '" alt="">' :
+      '<span class="ptile__word">' + (top ? esc(A.resLabel(top)) : '') + '</span>' + (top ? '<span class="ptile__comp">' + esc(top.title) + '</span>' : '');
     return '<a class="ptile" href="#wall" data-act="fame-month" data-val="' + k + '">' +
-      '<span class="ptile__media">' + (top && top.photo ? '<img src="' + top.photo + '" alt="">' : '<img class="ptile__crest" src="img/adzkia-logo.png" alt="">') + '</span>' +
-      '<span class="ptile__month">' + A.monthLabel(k) + '</span>' + (top ? '<span class="ptile__top">' + esc(A.resLabel(top)) + ', ' + esc(top.title) + '</span>' : '') + '</a>';
+      '<span class="ptile__media' + (top && top.photo ? ' has-photo' : '') + '">' + media + '</span>' +
+      '<span class="ptile__month">' + A.monthLabel(k) + '</span>' + (top ? '<span class="ptile__top">' + names(top) + '</span>' : '') + '</a>';
   }
+  function prevGrid(prev) { return '<div class="prev__grid" style="--n:' + prev.length + '">' + prev.map(prevTile).join('') + '</div>'; }
   V.home = function () {
     var keys = editions(), k = keys.indexOf(A.monthKey(0)) !== -1 ? A.monthKey(0) : keys[0], list = k ? inEdition(k) : [];
     var prev = keys.filter(function (x) { return x !== k; }).slice(0, 3);
@@ -112,7 +122,7 @@
       '<p>Kami tahu tidak semua usaha berakhir di podium. Ada yang berlatih berminggu-minggu lalu belum lolos, ada yang baru pertama kali berani mendaftar. Semua itu tetap bagian dari perjalanan, dan kami ingin kalian tahu bahwa usaha itu terlihat.</p>' +
       '<p>Tidak perlu menunggu siap untuk mencoba. Menang atau belum, usahamu tetap berarti bagi kami.</p>' +
       '<p class="letter__sign"><span>' + esc(ketua()) + '</span>Ketua OSIS ' + SCHOOL + ', 2026/2027</p></div></div></section>' +
-      (prev.length ? '<section class="pub-wrap prev"><div class="edition__head"><h2>Edisi sebelumnya</h2><a class="textlink" href="#wall">Wall of Fame' + ic('arrow-right') + '</a></div><div class="prev__grid">' + prev.map(prevTile).join('') + '</div></section>' : '') +
+      (prev.length ? '<section class="pub-wrap prev"><div class="edition__head"><h2>Edisi sebelumnya</h2><a class="textlink" href="#wall">Wall of Fame' + ic('arrow-right') + '</a></div>' + prevGrid(prev) + '</section>' : '') +
       '<section class="motto"><img src="' + IMG + 'life-pair.jpg" alt=""><div class="pub-wrap motto__in"><p class="motto__line">Untuk kamu yang sedang bersiap: semoga lelahmu jadi berkah.</p><a class="textlink textlink--light" href="#tentang">Tentang ADZVANCE' + ic('arrow-right') + '</a></div></section></div>';
   };
 
@@ -129,18 +139,15 @@
       '<p>Kami juga ingin adik kelas melihat bahwa kakak-kakaknya pernah memulai dari nol, sehingga mereka berani mencoba juga. Prestasi satu siswa adalah kebanggaan seluruh sekolah.</p></div></section>' +
       '<section class="hopes"><div class="pub-wrap prose-row prose-row--flat"><h2>Harapan kami</h2><ol class="hopes__list">' + hopes.map(function (h, i) { return '<li><span>' + (i + 1) + '</span>' + h + '</li>'; }).join('') + '</ol></div></section>' +
       '<section class="pub-wrap prose-row"><h2>Sekolah</h2><div class="prose">' +
-      '<p class="prose__lede">SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A dengan dua kampus di Kota Medan.</p>' +
-      '<div class="photo-pair"><img src="' + IMG + 'life-4.jpg" alt="Siswi belajar bersama"><img src="' + IMG + 'life-pair.jpg" alt="Siswa membaca di perpustakaan"></div></div></section>' +
+      '<p class="prose__lede">SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A dengan dua kampus di Kota Medan.</p></div></section>' +
       '<section class="motto-band"><div class="pub-wrap"><img class="statement__crest" src="img/adzkia-logo.png" alt=""><blockquote>Membangun pemimpin cerdas dan berakhlak mulia.</blockquote></div></section>' +
       '<section class="pub-wrap prose-row"><h2>Pengelola</h2><div class="prose"><dl class="rows">' +
       '<div><dt>Dikelola oleh</dt><dd>OSIS ' + SCHOOL + ', periode 2026/2027</dd></div>' +
-      '<div><dt>Ketua OSIS</dt><dd>' + esc(ketua()) + '</dd></div></dl></div></section>' +
-      '<section class="pub-wrap prose-row"><h2>Untuk orang tua</h2><div class="prose">' +
-      '<p>Prestasi anak Anda dapat dilihat dan dibagikan dari website ini. Kami berharap halaman ini menjadi satu cara kecil untuk ikut merayakan usaha mereka di rumah.</p>' +
-      '<p>Untuk koreksi atau penghapusan data, OSIS siap membantu.</p></div></section>' +
-      '<section class="pub-wrap closing"><p>Kalau hari ini kamu belum menang, tidak apa-apa. Kami tetap senang kamu mencoba.</p></section>' +
-      '<section class="pub-wrap prose-row"><h2>Kontak</h2><div class="prose">' +
-      '<p class="prose__contact">Instagram <a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></p></div></section></div>';
+      '<div><dt>Ketua OSIS</dt><dd>' + esc(ketua()) + '</dd></div>' +
+      '<div><dt>Instagram</dt><dd><a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></dd></div></dl></div></section>' +
+      '<section class="pub-wrap prose-row prose-row--last"><h2>Untuk orang tua</h2><div class="prose">' +
+      '<p class="prose__lede">Terima kasih sudah mendampingi perjuangan mereka.</p>' +
+      '<p><a class="textlink" href="#privasi">Kebijakan privasi' + ic('arrow-right') + '</a></p></div></section></div>';
   };
 
   /* ---------- kebijakan privasi ---------- */

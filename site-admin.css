@@ -75,3 +75,9 @@
   .sheet--fame .row__actions { justify-content: flex-start; flex-wrap: wrap; }
   .activity li { flex-direction: column; gap: 2px; }
 }
+
+/* checker-2: no double rules under page headers and tabs; one-line action buttons */
+.page--ws .phead + .figures, .page--ws .phead + .section-title, .page--ws .phead + .sheet, .page--ws .phead + .tabs-bar,
+.page--ws .tabs-bar + .sheet, .page--ws .tabs-bar + .sheet--ws { border-top: 0 !important; margin-top: 0; }
+.page--ws .phead + .section-title { padding-top: 0; }
+.sheet--fame .row__actions .btn { white-space: nowrap; }

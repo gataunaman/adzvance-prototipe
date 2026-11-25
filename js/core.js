@@ -1,7 +1,13 @@
 /* ADZVANCE prototype: state, helpers, routing. Plain script, no build step. */
 (function () {
   var KEY = 'adzvance-demo-v5';
-  var A = window.A = { V: {}, ACT: {}, FORM: {}, ui: { filters: {}, q: '', subj: 'all', skill: null, kelas: null, viewUser: null, viewLomba: 'esai-energi', viewThread: 'th1', editLomba: null, menu: false } };
+  /* preview switch for the colourful app theme: ?theme=colour turns it on (remembered), ?theme=off clears it */
+  (function () {
+    var q = (location.search.match(/[?&]theme=([a-z]+)/) || [])[1], t;
+    try { if (q === 'off') localStorage.removeItem('adz-theme'); else if (q) localStorage.setItem('adz-theme', q); t = localStorage.getItem('adz-theme'); } catch (e) { t = q !== 'off' ? q : null; }
+    if (t === 'colour') document.documentElement.dataset.theme = 'colour';
+  })();
+  var A = window.A ={ V: {}, ACT: {}, FORM: {}, ui: { filters: {}, q: '', subj: 'all', skill: null, kelas: null, viewUser: null, viewLomba: 'esai-energi', viewThread: 'th1', editLomba: null, menu: false } };
 
   /* ---------- store ---------- */
   function load() {
@@ -133,8 +139,18 @@
     if (!keepScroll && !s.sub) window.scrollTo(0, 0);
     A.ui.menu = false;
     document.body.dataset.kind = kind;
+    if (!keepScroll) countUp();
     A.save();
   };
+  /* colour theme: the days-left figure on the home deadline card counts up once */
+  function countUp() {
+    if (document.documentElement.dataset.theme !== 'colour' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('.feature .figure').forEach(function (el) {
+      var to = parseInt(el.textContent, 10), t0 = performance.now();
+      if (!(to > 0)) return;
+      (function step(t) { var p = Math.min(1, (t - t0) / 500); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); })(t0);
+    });
+  }
   A.rerender = function () { var y = window.scrollY; A.render(true); window.scrollTo(0, y); };
 
   A.renderShells = function (id, kind) {

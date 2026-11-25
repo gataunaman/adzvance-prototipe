@@ -50,23 +50,32 @@
       '<div class="tabs-bar">' + tabs.map(function (t) { var n = A.S.lomba.filter(function (l) { return l.status === t[0]; }).length; return '<button type="button" class="tab" aria-pressed="' + (tab === t[0]) + '" data-act="admin-tab" data-val="' + t[0] + '">' + t[1] + ' <span class="tab__n">' + n + '</span></button>'; }).join('') + '</div>' + table + '</div>';
   };
 
+  /* day offsets (how the demo stores dates) <-> yyyy-mm-dd for date inputs */
+  A.isoAt = function (d) { var t = new Date(); t.setHours(12, 0, 0, 0); t.setDate(t.getDate() + (d || 0)); return t.toISOString().slice(0, 10); };
+  A.daysTo = function (iso) { if (!iso) return 0; var t = new Date(); t.setHours(12, 0, 0, 0); return Math.round((new Date(iso + 'T12:00:00') - t) / 864e5); };
   V['admin-lomba-form'] = function () {
     var l = A.lomba(A.ui.editLomba) || { id: '', title: '', org: '', cat: 'sains', form: 'Online', level: 'Nasional', fee: 0, dl: 14, link: '' };
     function sel(name, opts, cur) { return '<select class="input" name="' + name + '">' + opts.map(function (o) { var arr = Array.isArray(o), v = arr ? o[0] : o, t = arr ? o[1] : o; return '<option value="' + v + '"' + (v == cur ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select>'; }
-    return '<div class="page page--ws"><p class="crumb"><a class="link small" href="#admin-lomba">' + ic('arrow-left') + 'Kembali ke daftar lomba</a></p>' + head(l.id ? 'Ubah lomba' : 'Tambah lomba', l.id ? esc(l.title) : 'Untuk lomba yang tidak ditemukan pencarian otomatis, misalnya Puspresnas.') +
+    function text(label, name, val) { return '<div class="field"><label>' + label + '</label><input class="input" name="' + name + '" value="' + esc(val || '') + '"></div>'; }
+    function lines(label, name, list) { return '<div class="field"><label>' + label + '</label><textarea class="input" name="' + name + '" rows="4">' + esc((list || []).join('\n')) + '</textarea></div>'; }
+    var free = !l.fee;
+    return '<div class="page page--ws"><p class="crumb"><a class="link small" href="#admin-lomba">' + ic('arrow-left') + 'Kembali ke daftar lomba</a></p>' + head(l.id ? 'Ubah lomba' : 'Tambah lomba') +
       '<form class="ws-form" data-form="lomba" data-id="' + l.id + '"><div class="edit-card"><h2>Informasi</h2>' +
-      '<div class="field"><label>Judul lomba</label><input class="input" name="title" required value="' + esc(l.title) + '"></div>' +
-      '<div class="field"><label>Penyelenggara</label><input class="input" name="org" required value="' + esc(l.org) + '"></div>' +
+      text('Judul lomba', 'title', l.title).replace('name="title"', 'name="title" required') +
+      text('Penyelenggara', 'org', l.org).replace('name="org"', 'name="org" required') +
       '<div class="grid-3"><div class="field"><label>Kategori</label>' + sel('cat', Object.keys(A.S.cats).map(function (k) { return [k, A.S.cats[k].name]; }), l.cat) + '</div>' +
       '<div class="field"><label>Bentuk</label>' + sel('form', ['Online', 'Offline', 'Hybrid'], l.form) + '</div>' +
       '<div class="field"><label>Tingkat</label>' + sel('level', ['Sekolah', 'Kabupaten', 'Kota', 'Provinsi', 'Nasional', 'Internasional'], l.level) + '</div></div>' +
-      '<div class="grid-3"><div class="field"><label>Biaya (Rp, 0 = gratis)</label><input class="input" name="fee" type="number" min="0" value="' + (l.fee || 0) + '"></div>' +
-      '<div class="field"><label>Deadline daftar (hari lagi)</label><input class="input" name="dl" type="number" min="0" value="' + l.dl + '"></div>' +
-      '<div class="field"><label>Tautan pendaftaran</label><input class="input" name="link" type="url" placeholder="https://" value="' + esc(l.link || '') + '"></div></div>' +
-      '<div class="field"><label>Poster</label><label class="dropzone">' + ic('image-plus') + '<span>Pilih gambar poster (JPG/PNG)</span><input type="file" accept="image/*" data-act="poster" hidden></label></div></div>' +
-      '<div class="edit-card"><h2>Jadwal</h2><div class="grid-2"><div class="field"><label for="lf-ev">Pelaksanaan (hari lagi)</label><input class="input" id="lf-ev" name="ev" type="number" value="' + (l.ev || l.dl + 10) + '"></div>' +
-      '<div class="field"><label for="lf-ann">Pengumuman (hari lagi)</label><input class="input" id="lf-ann" name="ann" type="number" value="' + (l.ann || l.dl + 20) + '"></div></div>' +
-      '<label class="check" style="margin-top: var(--space-md)"><input type="checkbox" name="ladder"' + (l.ladder ? ' checked' : '') + '>Lomba berjenjang (OSN, FLS2N, O2SN, LKS)</label></div>' +
+      '<div class="grid-3"><div class="field"><label>Biaya</label><div class="fee-row"><label class="check"><input type="checkbox" name="free" data-act="fee-free"' + (free ? ' checked' : '') + '>Gratis</label><span class="input-prefix"><span>Rp</span><input class="input" name="fee" type="number" min="0" value="' + (l.fee || '') + '"' + (free ? ' disabled' : '') + ' aria-label="Biaya dalam rupiah"></span></div></div>' +
+      '<div class="field" style="grid-column: span 2"><label>Tautan pendaftaran</label><input class="input" name="link" type="url" value="' + esc(l.link || '') + '"></div></div>' +
+      '<div class="field"><label>Poster</label><label class="dropzone">' + ic('image-plus') + '<span>Pilih file</span><input type="file" accept="image/*" data-act="poster" hidden></label></div></div>' +
+      '<div class="edit-card"><h2>Jadwal</h2><div class="grid-3">' +
+      '<div class="field"><label for="lf-dl">Pendaftaran ditutup</label><input class="input" id="lf-dl" name="dl" type="date" required value="' + A.isoAt(l.dl) + '"></div>' +
+      '<div class="field"><label for="lf-ev">Pelaksanaan</label><input class="input" id="lf-ev" name="ev" type="date" value="' + A.isoAt(l.ev || l.dl + 10) + '"></div>' +
+      '<div class="field"><label for="lf-ann">Pengumuman</label><input class="input" id="lf-ann" name="ann" type="date" value="' + A.isoAt(l.ann || l.dl + 20) + '"></div></div>' +
+      '<label class="check" style="margin-top: var(--space-md)"><input type="checkbox" name="ladder"' + (l.ladder ? ' checked' : '') + '>Berjenjang</label></div>' +
+      '<div class="edit-card"><h2>Detail</h2><div class="grid-3">' + text('Tema', 'tema', l.tema) + text('Jenjang', 'jenjang', l.jenjang) + text('Peserta', 'peserta', l.peserta) + '</div>' +
+      '<div class="grid-2">' + lines('Syarat', 'syarat', l.syarat) + lines('Hadiah', 'hadiah', l.hadiah) + '</div>' + text('Kontak', 'kontak', l.kontak) + '</div>' +
       '<div class="ws-form__foot">' + (l.id ? '<button class="btn btn--quiet is-danger" type="button" data-act="del-lomba" data-id="' + l.id + '">' + ic('trash-2') + 'Hapus lomba</button>' : '<span></span>') + '<div class="head__actions"><a class="btn btn--secondary" href="#admin-lomba">Batal</a><button class="btn btn--primary" type="submit">' + (l.id ? 'Simpan perubahan' : 'Terbitkan lomba') + '</button></div></div></form></div>';
   };
 
@@ -107,14 +116,14 @@
     function proof(e) {
       return '<span class="proof">' + (e.proofLink ? '<span class="proof__item" title="' + esc(e.proofLink) + '">' + ic('link') + '<span>' + esc(e.proofLink) + '</span></span>' : '') +
         (e.proofFile ? '<span class="proof__item">' + ic('image') + '<span>' + esc(e.proofFile) + '</span></span>' : '') +
-        (e.cert ? '<span class="proof__item">' + ic('paperclip') + '<span>Sertifikat</span></span>' : '<span class="proof__item muted"><span>Belum ada sertifikat</span></span>') + '</span>';
+        (e.cert ? '<span class="proof__item">' + ic('paperclip') + '<span>Sertifikat</span></span>' : '') + '</span>';
     }
     function row(e, live) {
       var mine = A.S.me && e.who.indexOf(A.S.me) !== -1;
       var who = e.who.map(function (id) { var s = A.stu(id); return s ? esc(s.name + ', ' + s.kelas) : ''; }).concat(e.ext ? [esc(e.ext)] : []).join('; ');
       var badge = live ? '<span class="stat stat--ok">Terbit</span>' : e.status === 'info' ? '<span class="stat">Menunggu siswa</span>' : '<span class="stat stat--warn">Menunggu</span>';
       var acts = live ? more([mi('entry-edit', e.id, 'pencil', 'Ubah'), mi('entry-down', e.id, 'eye-off', 'Turunkan', true)]) :
-        '<button class="btn btn--primary" type="button" data-act="entry-verify" data-id="' + e.id + '"' + (mine ? ' disabled title="Prestasimu sendiri disetujui admin lain"' : '') + '>Setujui</button>' +
+        (mine ? '<span class="muted small nowrap">Perlu admin lain</span>' : '<button class="btn btn--primary" type="button" data-act="entry-verify" data-id="' + e.id + '">Setujui</button>') + '' +
         '<button class="btn btn--secondary" type="button" data-act="entry-info" data-id="' + e.id + '">Minta info</button>' + more([mi('entry-edit', e.id, 'pencil', 'Ubah'), mi('entry-reject', e.id, 'x', 'Tolak', true)]);
       return '<div class="row"><div class="fame-cell">' + (e.photo ? '<span class="fame-thumb" style="background-image:url(' + e.photo + ')"></span>' : '') + '<div>' +
         '<div class="row__title">' + esc(A.resLabel(e) + ', ' + e.title) + '</div><div class="row__sub">' + who + '</div>' +
