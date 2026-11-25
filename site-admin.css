@@ -1,0 +1,77 @@
+/* Admin layer (2026-11-25, review round 1): quiet tables, text statuses, one ink chart, no category hues. Loaded last. */
+
+/* sidebar */
+.side__tag, .side--dev .side__tag { padding: 0; background: none; color: var(--color-muted); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; }
+.side__tag svg { display: none; }
+.side__nav a { color: var(--color-ink-2); font-weight: 500; }
+.side__nav a svg { color: var(--color-muted) !important; }
+.side__nav a[aria-current="page"] { background: var(--color-surface); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-rule); }
+.side__nav a[aria-current="page"] svg { color: var(--color-ink) !important; }
+.side__group { color: var(--color-muted); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* status: small text with a dot, one style for every admin page */
+.stat, .badge, .badge--ok, .badge--warn, .badge--bad { display: inline-flex; align-items: center; gap: 7px; min-height: 0; padding: 0; border: 0; background: none; border-radius: 0; font-size: 0.875rem; font-weight: 500; color: var(--color-ink-2); white-space: nowrap; }
+.stat::before, .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--color-rule-2); flex: none; }
+.stat--ok::before, .badge--ok::before { background: var(--color-ink); }
+.stat--warn, .badge--warn { color: var(--color-accent-deep); }
+.stat--warn::before, .badge--warn::before { background: var(--color-accent); }
+.badge--bad { color: var(--color-error); }
+.badge--bad::before { background: var(--color-error); }
+
+/* figures: a rule-separated row, serif numbers */
+.figures { gap: 0; border-top: 1px solid var(--color-ink); border-bottom: 1px solid var(--color-rule-2); margin-bottom: 40px; }
+.figures > a, .figures > div, .figures > a.is-alert { display: grid; gap: 6px; padding: 22px 24px 22px 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: inherit; text-decoration: none; }
+.figures > * + * { border-left: 1px solid var(--color-rule) !important; padding-left: 24px !important; }
+.figures .figure { font-size: 3rem; line-height: 1; color: var(--color-ink); }
+.figures > a.is-alert .figure { color: var(--color-accent-deep); }
+.figures .label { color: var(--color-ink-2); font-size: 0.9375rem; }
+.figures > a:hover .label { color: var(--color-ink); text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* chart: one ink fill, the largest row in the accent */
+.admin-grid .well { background: none; border: 0; border-top: 1px solid var(--color-rule-2); border-radius: 0; padding: 20px 0 0; }
+.bar-row { font-weight: 500; }
+.bar-track { height: 8px; border-radius: 4px; background: var(--color-paper-2); }
+.bar-fill { background: var(--color-ink) !important; border-radius: 4px; }
+.bar-fill.is-top { background: var(--color-accent) !important; }
+
+/* recent activity: a hairline list */
+.activity { gap: 0; margin-top: 8px; }
+.activity li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-rule); font-size: 0.9375rem; grid-template-columns: none; }
+.activity li:first-child { border-top: 1px solid var(--color-rule); }
+.activity__time { flex: none; color: var(--color-muted); font-size: 0.8125rem; white-space: nowrap; }
+
+/* tables */
+.sheet--ws { border: 0; border-top: 1px solid var(--color-ink); border-radius: 0; background: none; }
+.sheet--ws .row { border-bottom: 1px solid var(--color-rule); background: none; padding: 16px 0; }
+.sheet--ws .sheet__head, .sheet--ws .row { grid-template-columns: minmax(0, 1fr) minmax(9rem, 14rem) minmax(7rem, 11rem) 13rem; }
+.sheet--ws .row__actions { justify-content: flex-end; }
+.sheet--users .sheet__head, .sheet--users .row { grid-template-columns: minmax(0, 1.4fr) 7rem minmax(0, 1.2fr) 7rem 3rem; }
+.sheet--audit.sheet--ws .sheet__head, .sheet--audit.sheet--ws .row { grid-template-columns: 9rem 11rem minmax(0, 1fr) minmax(0, 1fr); }
+.sheet--ws .sheet__head { background: none; padding: 12px 0; border-bottom: 1px solid var(--color-rule-2); font-size: 0.8125rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.row__meta { color: var(--color-ink-2); }
+
+/* wall of fame review */
+.sheet--fame .row { grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 130px 16rem; align-items: start; }
+.fame-cell { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.fame-cell > div { min-width: 0; }
+.fame-thumb { margin-top: 2px; }
+.lvl { font-weight: 600; color: var(--color-ink); }
+.proof { display: grid; gap: 4px; min-width: 0; }
+.proof__item { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--color-ink-2); }
+.proof__item svg { width: 14px; height: 14px; flex: none; color: var(--color-muted); }
+.proof__item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet--fame .row > div:nth-child(3) { padding-top: 2px; }
+.sheet--fame .row__actions { justify-content: flex-end; flex-wrap: nowrap; }
+.sheet--fame .row__sub svg { width: 13px; height: 13px; vertical-align: -2px; }
+
+/* reports: no icon tile */
+.report { grid-template-columns: minmax(0, 1fr) auto; background: none; border: 0; border-top: 1px solid var(--color-rule); border-radius: 0; padding: 18px 0; }
+
+@media (max-width: 44rem) {
+  .figures > * + * { border-left: 0 !important; padding-left: 0 !important; }
+  .figures > * { border-bottom: 1px solid var(--color-rule) !important; padding: 16px 0 !important; }
+  .sheet--fame .row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 18px 0; }
+  .sheet--fame .row > * { grid-column: 1 !important; grid-row: auto !important; }
+  .sheet--fame .row__actions { justify-content: flex-start; flex-wrap: wrap; }
+  .activity li { flex-direction: column; gap: 2px; }
+}

@@ -1,9 +1,10 @@
 /* ADZVANCE prototype: public pages (no login needed) and the Wall of Fame.
- * The Wall shows one monthly edition at a time: verified results, newest first, never ranked. */
+ * Editorial direction: one monthly edition, set as an honor roll. Verified results only, newest first, never ranked. */
 (function () {
   var A = window.A, V = A.V, esc = A.esc, ic = A.ic;
-  var IG = 'instagram.com/smaislamplusadzkiamedan';
+  var IG = 'https://instagram.com/smaislamplusadzkiamedan';
   var SCHOOL = 'SMA Islam Plus Adzkia Medan';
+  var IMG = 'img/school/';
 
   /* ---------- data ---------- */
   function visible() {
@@ -19,100 +20,115 @@
   A.editions = editions; A.inEdition = inEdition; A.currentEdition = currentEdition;
 
   /* ---------- pieces ---------- */
-  var ART = { gold: 'trophy', silver: 'medal', bronze: 'medal', soft: 'award', special: 'star' };
-  function cls(e) { return A.resInfo(e.result).cls || 'soft'; }
-  function art(e) { return e.photo ? '<img src="' + e.photo + '" alt="">' : '<span class="fcard__art">' + ic(ART[cls(e)]) + '</span>'; }
-  /* a name links to a profile only for logged-in students, or when the student turned on their public link */
+  function names(e) {
+    var w = A.whoShown(e), n = w.shown.map(function (s) { return esc(s.name); });
+    if (w.hidden) n.push(w.hidden + ' siswa lainnya');
+    if (e.ext) n.push(esc(e.ext));
+    return n.join(', ');
+  }
+  /* a name links to a profile only for logged-in students, or when the student turned on a public link */
   function pname(s) {
     if (A.S.me) return A.name(s);
     return s.publicLink ? '<a class="name-link" href="#" data-act="toast" data-val="Membuka adzvance.com/u/' + esc(s.id) + ' (demo)">' + esc(s.name) + '</a>' : esc(s.name);
   }
-  function people(e, withClass) {
-    var w = A.whoShown(e), names = w.shown.map(function (s) { return pname(s) + (withClass ? ' <span class="muted">' + esc(s.kelas) + '</span>' : ''); });
-    if (w.hidden) names.push(w.hidden + ' siswa lainnya');
-    if (e.ext) names.push(esc(e.ext));
-    return names.join(withClass ? '<br>' : ', ');
+  function team(e) {
+    var w = A.whoShown(e);
+    return '<ul class="team">' + w.shown.map(function (s) { return '<li><span>' + pname(s) + '</span><span class="team__class">' + esc(s.kelas) + '</span></li>'; }).join('') +
+      (w.hidden ? '<li><span>' + w.hidden + ' siswa lainnya</span></li>' : '') + (e.ext ? '<li><span>' + esc(e.ext) + '</span></li>' : '') + '</ul>';
   }
   function path(e) {
     var chain = [e], p = e;
     while (p.prev && (p = A.S.entries.find(function (x) { return x.id === p.prev; }))) chain.unshift(p);
     var n = e; while ((n = A.S.entries.find(function (x) { return x.prev === n.id && x.status === 'verified'; }))) chain.push(n);
     if (chain.length < 2) return '';
-    return '<p class="fpath">' + ic('route') + chain.map(function (x) { return '<span' + (x === e ? ' class="is-here"' : '') + '>' + esc(x.level) + ': ' + esc(A.resLabel(x)) + '</span>'; }).join(ic('chevron-right')) + '</p>';
+    return '<ol class="path">' + chain.map(function (x, i) { return (i ? '<li class="path__arrow" aria-hidden="true">' + ic('arrow-right') + '</li>' : '') + '<li class="path__step' + (x === e ? ' is-here' : '') + '"><span>' + esc(x.level) + '</span>' + esc(A.resLabel(x)) + '</li>'; }).join('') + '</ol>';
   }
-  function open(e, inner, extra) { return '<a class="' + (extra || '') + '" href="#prestasi" data-act="view-entry" data-id="' + e.id + '">' + inner + '</a>'; }
-  function card(e) {
-    return '<article class="fcard fcard--' + cls(e) + '">' + open(e, art(e) + '<span class="fcard__level">' + esc(e.level) + '</span>', 'fcard__media') +
-      '<div class="fcard__body"><span class="fres fres--' + cls(e) + '">' + esc(A.resLabel(e)) + '</span>' +
-      '<h3 class="fcard__title">' + open(e, esc(e.title)) + '</h3><p class="fcard__who">' + people(e) + '</p>' + path(e) + '</div></article>';
+  function link(e, inner, cls) { return '<a class="' + cls + '" href="#prestasi" data-act="view-entry" data-id="' + e.id + '">' + inner + '</a>'; }
+  /* the honor roll: one row per result */
+  function row(e) {
+    return link(e, '<span class="roll__res">' + esc(A.resLabel(e)) + '</span>' +
+      '<span class="roll__main"><span class="roll__title">' + esc(e.title) + '</span><span class="roll__who">' + names(e) + '</span></span>' +
+      '<span class="roll__lvl">' + esc(e.level) + '</span>' + ic('arrow-up-right', 'roll__go'), 'roll__row');
   }
-  function cover(e, label) {
-    return '<article class="fcover fcard--' + cls(e) + '">' + open(e, art(e), 'fcover__media') +
-      '<div class="fcover__body"><span class="label">' + label + '</span><span class="fres fres--' + cls(e) + '">' + esc(A.resLabel(e)) + '</span>' +
-      '<h2>' + open(e, esc(e.title)) + '</h2><p class="fcard__who">' + people(e, true) + '</p><p class="small muted">' + esc(e.level) + ' · ' + esc(e.org) + '</p>' + path(e) + '</div></article>';
+  function roll(list) { return '<div class="roll">' + list.map(row).join('') + '</div>'; }
+  /* the lead result of an edition: its photo, or the result itself set large */
+  function lead(e) {
+    var media = e.photo ? '<img src="' + e.photo + '" alt="">' : '<span class="lead__word">' + esc(A.resLabel(e)) + '</span>';
+    return '<article class="lead">' + link(e, media, 'lead__media' + (e.photo ? ' has-photo' : '')) +
+      '<div class="lead__body"><p class="lead__meta">' + (e.photo ? esc(A.resLabel(e)) + ' · ' : '') + esc(e.level) + ' · ' + esc(e.org) + '</p>' +
+      '<h2 class="lead__title">' + link(e, esc(e.title), 'lead__link') + '</h2>' + team(e) + '</div></article>';
   }
-  A.fameCard = card;
+  function arrows(keys, k) {
+    var i = keys.indexOf(k);
+    return '<button class="masthead__arrow" type="button" data-act="fame-month" data-val="' + (keys[i + 1] || '') + '"' + (keys[i + 1] ? '' : ' disabled') + ' aria-label="Edisi sebelumnya">' + ic('arrow-left') + '</button>' +
+      '<button class="masthead__arrow" type="button" data-act="fame-month" data-val="' + (keys[i - 1] || '') + '"' + (i > 0 ? '' : ' disabled') + ' aria-label="Edisi berikutnya">' + ic('arrow-right') + '</button>';
+  }
 
   /* ---------- wall of fame: monthly edition ---------- */
   V.wall = function () {
-    var keys = editions(), k = currentEdition(keys), i = keys.indexOf(k), list = k ? inEdition(k) : [];
-    var studs = {}; list.forEach(function (e) { A.whoShown(e).shown.forEach(function (s) { studs[s.id] = 1; }); });
-    var nowEmpty = k && k !== A.monthKey(0) && !A.ui.fameMonth;
-    var submit = A.S.me ? '<button class="btn btn--primary" type="button" data-act="new-fame">' + ic('plus') + 'Kirim prestasi</button>' : '';
-    var head = '<div class="edition__head"><button class="icon-btn edition__arrow" type="button" data-act="fame-month" data-val="' + (keys[i + 1] || '') + '"' + (keys[i + 1] ? '' : ' disabled') + ' aria-label="Edisi sebelumnya">' + ic('chevron-left') + '</button>' +
-      '<div class="edition__title"><h1>' + (k ? 'Edisi ' + A.monthLabel(k) : 'Wall of Fame') + '</h1><p>' + list.length + ' prestasi · ' + Object.keys(studs).length + ' siswa</p></div>' +
-      '<button class="icon-btn edition__arrow" type="button" data-act="fame-month" data-val="' + (keys[i - 1] || '') + '"' + (i > 0 ? '' : ' disabled') + ' aria-label="Edisi berikutnya">' + ic('chevron-right') + '</button>' + submit + '</div>';
-    if (!k) return '<div class="container page">' + head + A.empty('star', 'Prestasi yang sudah diverifikasi OSIS akan tampil di sini.') + '</div>';
-    return '<div class="container page edition">' + head +
-      (nowEmpty ? '<p class="edition__note">' + ic('info') + 'Belum ada prestasi bulan ini. Ini edisi terakhir.</p>' : '') +
-      cover(list[0], 'Sampul edisi') + (list.length > 1 ? '<div class="fgrid">' + list.slice(1).map(card).join('') + '</div>' : '') + '</div>';
+    var keys = editions(), k = currentEdition(keys), list = k ? inEdition(k) : [];
+    if (!k) return '<div class="pub-wrap pub-page">' + A.empty('star', 'Belum ada prestasi.') + '</div>';
+    return '<div class="pub-wrap wall-page"><header class="masthead" data-enter><p class="masthead__kicker">Wall of Fame</p>' +
+      '<div class="masthead__row"><h1>' + A.monthLabel(k) + '</h1><div class="masthead__nav">' + arrows(keys, k) + '</div></div>' +
+      (A.S.me ? '<button class="pub-btn pub-btn--quiet masthead__submit" type="button" data-act="new-fame">' + ic('plus') + 'Kirim prestasi</button>' : '') + '</header>' +
+      lead(list[0]) + (list.length > 1 ? roll(list.slice(1)) : '') + '</div>';
   };
 
   /* ---------- one result ---------- */
   V.prestasi = function () {
     var e = A.S.entries.find(function (x) { return x.id === A.ui.viewEntry; });
-    if (!e || e.status !== 'verified' || !A.whoShown(e).shown.length) return '<div class="container page">' + A.empty('star', 'Prestasi ini tidak ditemukan.', '<a class="btn btn--secondary" href="#wall">Ke Wall of Fame</a>') + '</div>';
+    if (!e || e.status !== 'verified' || !A.whoShown(e).shown.length) return '<div class="pub-wrap pub-page">' + A.empty('star', 'Prestasi ini tidak ditemukan.', '<a class="pub-btn" href="#wall">Wall of Fame</a>') + '</div>';
     var member = A.S.me && e.who.indexOf(A.S.me) !== -1;
-    return '<div class="container page"><p class="crumb"><a class="link small" href="#wall" data-act="fame-month" data-val="' + e.month + '">' + ic('arrow-left') + 'Edisi ' + A.monthLabel(e.month) + '</a></p>' +
-      '<article class="result fcard--' + cls(e) + '"><div class="result__media">' + art(e) + '</div><div class="result__body">' +
-      '<span class="fres fres--' + cls(e) + '">' + esc(A.resLabel(e)) + '</span><h1>' + esc(e.title) + '</h1>' +
-      '<dl class="facts"><dt>Tingkat</dt><dd>' + esc(e.level) + '</dd><dt>Penyelenggara</dt><dd>' + esc(e.org) + '</dd><dt>Tanggal</dt><dd>' + A.dateAt(e.d) + '</dd><dt>' + (e.who.length + (e.ext ? 1 : 0) > 1 ? 'Tim' : 'Siswa') + '</dt><dd>' + people(e, true) + '</dd></dl>' + path(e) +
-      '<p class="verified">' + ic('badge-check') + 'Diverifikasi OSIS ' + SCHOOL + '</p>' +
-      '<div class="head__actions"><button class="btn btn--secondary" type="button" data-act="share-entry" data-id="' + e.id + '">' + ic('share-2') + 'Bagikan</button>' +
-      (A.S.me ? '<button class="btn btn--quiet" type="button" data-act="report-entry" data-id="' + e.id + '">' + ic('flag') + (member ? 'Ada yang salah?' : 'Laporkan') + '</button>' : '') + '</div></div></article></div>';
+    return '<article class="pub-wrap result-page" data-enter><a class="backlink" href="#wall" data-act="fame-month" data-val="' + e.month + '">' + ic('arrow-left') + A.monthLabel(e.month) + '</a>' +
+      '<div class="result-page__grid"><p class="result-page__res">' + esc(A.resLabel(e)) + '</p><div class="result-page__body"><h1>' + esc(e.title) + '</h1>' +
+      '<dl class="result-page__facts"><div><dt>Tingkat</dt><dd>' + esc(e.level) + '</dd></div><div><dt>Penyelenggara</dt><dd>' + esc(e.org) + '</dd></div><div><dt>Tanggal</dt><dd>' + A.dateAt(e.d) + '</dd></div></dl>' +
+      (e.photo ? '<figure class="result-page__photo"><img src="' + e.photo + '" alt=""></figure>' : '') +
+      team(e) + path(e) +
+      '<div class="result-page__foot"><span class="stamp"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>Diverifikasi OSIS</span>' +
+      '<span class="result-page__actions"><button class="pub-btn pub-btn--quiet" type="button" data-act="share-entry" data-id="' + e.id + '">' + ic('share-2') + 'Bagikan</button>' +
+      (A.S.me ? '<button class="pub-btn pub-btn--quiet" type="button" data-act="report-entry" data-id="' + e.id + '">' + ic('flag') + (member ? 'Koreksi' : 'Laporkan') + '</button>' : '') + '</span></div></div></div></article>';
   };
 
   /* ---------- public home ---------- */
   V.home = function () {
     var keys = editions(), k = keys.indexOf(A.monthKey(0)) !== -1 ? A.monthKey(0) : keys[0], list = k ? inEdition(k) : [];
-    var inside = [['award', 'Info Lomba', 'Lomba untuk SMA, diperbarui setiap hari.'], ['users', 'Cari Partner', 'Bentuk tim dengan teman satu sekolah.'], ['message-circle', 'Forum Soal', 'Tanya dan jawab soal latihan.']];
-    return '<div class="pub">' +
-      '<section class="container pub-hero"><div class="pub-hero__text"><span class="pub-school"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>' + SCHOOL + '</span>' +
-      '<h1>Prestasi siswa Adzkia, bulan demi bulan.</h1><div class="head__actions"><a class="btn btn--primary" href="#wall">' + ic('star') + 'Lihat Wall of Fame</a><a class="btn btn--secondary" href="#masuk">Masuk</a></div></div>' +
-      (list.length ? cover(list[0], 'Edisi ' + A.monthLabel(k)) : A.empty('star', 'Edisi pertama segera terbit.')) + '</section>' +
-      (list.length > 1 ? '<section class="container pub-sec"><div class="section-title"><h2>Juga di edisi ini</h2><a class="link small" href="#wall">Lihat semua</a></div><div class="fgrid">' + list.slice(1, 4).map(card).join('') + '</div></section>' : '') +
-      '<section class="container pub-sec"><div class="section-title"><h2>Di dalam ADZVANCE</h2></div><div class="inside">' + inside.map(function (x) { return '<div class="inside__item"><span class="inside__icon">' + ic(x[0]) + '</span><div><strong>' + x[1] + '</strong><p class="small muted">' + x[2] + '</p></div></div>'; }).join('') + '</div></section></div>';
+    return '<div class="home">' +
+      '<section class="pub-wrap hero" data-enter><div class="hero__text"><p class="hero__kicker">' + SCHOOL + '</p>' +
+      '<h1>Prestasi siswa Adzkia, setiap bulan.</h1>' +
+      '<div class="hero__actions"><a class="pub-btn" href="#wall">Buka edisi ' + (k ? A.monthLabel(k).split(' ')[0] : 'terbaru') + '</a><a class="pub-btn pub-btn--quiet" href="#masuk">Masuk siswa</a></div></div>' +
+      '<figure class="hero__photo"><img src="' + IMG + 'life-4.jpg" alt="Siswi SMA Islam Plus Adzkia Medan belajar bersama"></figure></section>' +
+      (list.length ? '<section class="pub-wrap edition"><div class="edition__head"><h2>Edisi ' + A.monthLabel(k) + '</h2><a class="textlink" href="#wall">Semua edisi' + ic('arrow-right') + '</a></div>' + lead(list[0]) + '</section>' : '') +
+      '<section class="motto"><img src="' + IMG + 'life-pair.jpg" alt=""><div class="pub-wrap motto__in"><p class="motto__line">Dikelola OSIS ' + SCHOOL + '.</p><a class="textlink textlink--light" href="#tentang">Tentang ADZVANCE' + ic('arrow-right') + '</a></div></section></div>';
   };
 
   /* ---------- tentang kami ---------- */
   V.tentang = function () {
-    var steps = [['send', 'Siswa mengirim hasil', 'Dengan tautan pengumuman resmi atau tangkapan layar.'], ['search-check', 'OSIS memeriksa', 'Dicocokkan dengan pengumuman penyelenggara atau unggahan sekolah.'], ['star', 'Terbit di Wall of Fame', 'Masuk edisi bulan itu dan tampil di profil siswa.']];
-    return '<div class="container page pub-page"><div class="pub-page__head"><span class="crest crest--l"><img src="img/adzkia-logo.png" alt=""></span><div><h1>Tentang ADZVANCE</h1><p>Platform lomba siswa ' + SCHOOL + ': cari lomba, bentuk tim, dan catat prestasi.</p></div></div>' +
-      '<section class="pub-block"><h2>Dikelola OSIS</h2><p>ADZVANCE dikelola OSIS ' + SCHOOL + '. Hanya siswa Adzkia yang bisa masuk, dengan NISN masing-masing.</p></section>' +
-      '<section class="pub-block"><h2>Dari lomba ke Wall of Fame</h2><ol class="steps">' + steps.map(function (s, i) { return '<li><span class="steps__icon">' + ic(s[0]) + '</span><span class="steps__n">' + (i + 1) + '</span><strong>' + s[1] + '</strong><p class="small muted">' + s[2] + '</p></li>'; }).join('') + '</ol>' +
-      '<p class="small muted">Yang tampil: juara, medali, penghargaan khusus, dan lolos ke tingkat berikutnya untuk lomba berjenjang seperti OSN dan FLS2N. Hanya lomba di luar sekolah.</p></section>' +
-      '<section class="pub-block"><h2>Kontak</h2><dl class="facts"><dt>Koreksi atau hapus data</dt><dd>OSIS, lewat Instagram sekolah</dd><dt>Instagram</dt><dd><a class="link" href="https://' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></dd><dt>Kampus I</dt><dd>Jl. Tuasan No. 4 dan 6, Medan</dd><dt>Kampus II</dt><dd>Jl. Iskandar Muda No. 244, Medan</dd></dl></section></div>';
+    return '<div class="about">' +
+      '<section class="about__hero"><img src="' + IMG + 'life-group.jpg" alt="Siswa SMA Islam Plus Adzkia Medan belajar bersama"><div class="pub-wrap about__hero-in" data-enter><h1>Tentang kami</h1></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>ADZVANCE</h2><div class="prose">' +
+      '<p class="prose__lede">Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk mendukung siswa yang berani berlomba, apa pun hasilnya.</p>' +
+      '<p>ADZVANCE bertujuan menjadi wadah berbagi prestasi siswa Adzkia, agar kerja keras mereka dikenal oleh teman, guru, orang tua, dan masyarakat. Setiap prestasi dihargai sama, tanpa peringkat.</p></div></section>' +
+      '<section class="pub-wrap prose-row"><h2>Sekolah</h2><div class="prose">' +
+      '<p>SMA Islam Plus Adzkia Medan adalah sekolah menengah atas Islam berakreditasi A di Kota Medan.</p></div></section>' +
+      '<section class="pub-wrap about__motto"><blockquote>Membangun pemimpin cerdas dan berakhlak mulia.</blockquote></section>' +
+      '<section class="pub-wrap prose-row"><h2>Kontak</h2><div class="prose">' +
+      '<p class="prose__contact">OSIS, lewat Instagram sekolah <a class="textlink" href="' + IG + '" target="_blank" rel="noopener">@smaislamplusadzkiamedan</a></p></div></section></div>';
   };
 
   /* ---------- kebijakan privasi ---------- */
   V.privasi = function () {
-    var blocks = [
-      ['eye', 'Yang tampil publik', 'Nama, kelas, foto prestasi (jika ada), nama lomba, tingkat, dan hasil yang sudah diverifikasi OSIS.'],
-      ['eye-off', 'Yang tidak pernah tampil', 'NISN, kata sandi, nomor WhatsApp, bukti dan sertifikat, serta hasil "tidak lolos" atau "mundur".'],
-      ['user-x', 'Menyembunyikan diri', 'Siswa bisa mematikan "Tampilkan saya di Wall of Fame publik" di Ubah profil. Siswa lain yang sudah masuk tetap bisa melihat.'],
-      ['trash-2', 'Permintaan hapus', 'Siswa atau orang tua bisa meminta OSIS menghapus prestasi atau foto. Data dihapus dari situs secepatnya.']
+    var s = [
+      ['Siapa kami', 'ADZVANCE dikelola OSIS SMA Islam Plus Adzkia Medan untuk siswa sekolah ini. Akun dibuat dari daftar NISN sekolah; tidak ada pendaftaran terbuka.'],
+      ['Data yang kami simpan', 'Nama, NISN, kelas, dan isi profil yang diisi siswa sendiri: foto, bio, minat, keahlian, dan tautan. Untuk lomba: lomba yang diikuti, hasilnya, serta bukti dan sertifikat yang diunggah untuk verifikasi.'],
+      ['Yang tampil untuk publik', 'Hanya prestasi yang sudah diverifikasi OSIS: nama siswa, kelas, nama lomba, tingkat, hasil, dan foto prestasi jika ada. Profil siswa hanya tampil untuk publik jika siswa sendiri menyalakan tautan publiknya.'],
+      ['Yang tidak pernah tampil', 'NISN, kata sandi, nomor WhatsApp, bukti dan sertifikat, serta hasil tidak lolos atau mundur. Bukti dan sertifikat hanya dapat dibuka admin OSIS.'],
+      ['Menyembunyikan nama', 'Di halaman Ubah profil, siswa dapat mematikan pilihan tampil di Wall of Fame publik. Setelah itu pengunjung luar tidak melihat namanya; siswa Adzkia yang sudah masuk tetap dapat melihatnya.'],
+      ['Foto', 'Foto yang diunggah diperkecil dan data lokasinya dihapus sebelum disimpan.'],
+      ['Cookie', 'Kami hanya memakai satu cookie untuk menjaga sesi masuk. Tidak ada iklan dan tidak ada pelacak pihak ketiga.'],
+      ['Penyimpanan', 'Data disimpan di server sekolah. Prestasi yang sudah terbit tetap ada setelah siswa lulus, kecuali siswa atau orang tua meminta penghapusan.'],
+      ['Permintaan hapus', 'Siswa atau orang tua dapat meminta OSIS menghapus prestasi, foto, atau akun lewat Instagram sekolah. Data dihapus dari situs secepatnya.']
     ];
-    return '<div class="container page pub-page"><div class="pub-page__head"><div><h1>Kebijakan privasi</h1><p>Siswa Adzkia masih di bawah umur. Kami hanya menampilkan yang perlu.</p></div></div>' +
-      '<div class="privacy">' + blocks.map(function (b) { return '<section class="privacy__item"><span class="inside__icon">' + ic(b[0]) + '</span><div><h2>' + b[1] + '</h2><p>' + b[2] + '</p></div></section>'; }).join('') + '</div></div>';
+    return '<article class="pub-wrap legal" data-enter><h1>Kebijakan privasi</h1><p class="legal__date">Diperbarui 25 November 2026</p>' +
+      s.map(function (x, i) { return '<section><span class="legal__n">' + (i + 1) + '</span><div><h2>' + x[0] + '</h2><p>' + x[1] + '</p></div></section>'; }).join('') + '</article>';
   };
 })();

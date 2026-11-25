@@ -10,12 +10,15 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="soft.css">
 <link rel="stylesheet" href="showcase.css">
 <link rel="stylesheet" href="interactive.css">
 <link rel="stylesheet" href="public.css">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="site-app.css">
+<link rel="stylesheet" href="site-admin.css">
 </head>
 <body>
 
@@ -26,7 +29,7 @@
     <nav class="nav" aria-label="Menu publik">
       <a href="#home" data-for="home">Beranda</a>
       <a href="#wall" data-for="wall prestasi">Wall of Fame</a>
-      <a href="#tentang" data-for="tentang privasi">Tentang kami</a>
+      <a href="#tentang" data-for="tentang">Tentang kami</a>
     </nav>
     <div class="bar__end" data-fill="pub-cta"></div>
   </div>
@@ -35,7 +38,7 @@
 <!-- ===================== STUDENT SHELL ===================== -->
 <header class="shell shell--siswa bar">
   <div class="container bar__in">
-    <a class="brand" href="#beranda">ADZVANCE</a>
+    <a class="brand brand--pub" href="#beranda"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>ADZVANCE</a>
     <nav class="nav" aria-label="Menu siswa">
       <a href="#beranda" data-for="beranda pengumuman"><i data-lucide="house"></i>Beranda</a>
       <a href="#lomba" data-for="lomba lomba-detail"><i data-lucide="award"></i>Info Lomba</a>
@@ -63,7 +66,7 @@
 <!-- ===================== ADMIN SHELL ===================== -->
 <aside class="shell shell--admin side" aria-label="Menu admin">
   <div class="side__top">
-    <a class="brand" href="#admin">ADZVANCE</a><span class="side__tag"><i data-lucide="shield-check"></i>Admin</span>
+    <a class="brand brand--pub" href="#admin"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>ADZVANCE</a><span class="side__tag">Admin</span>
     <button class="icon-btn side__toggle" type="button" data-act="side-toggle" aria-label="Buka menu"><i data-lucide="menu"></i></button>
   </div>
   <nav class="side__nav">
@@ -87,7 +90,7 @@
 <!-- ===================== DEVELOPER SHELL ===================== -->
 <aside class="shell shell--dev side side--dev" aria-label="Menu developer">
   <div class="side__top">
-    <a class="brand" href="#dev">ADZVANCE</a><span class="side__tag"><i data-lucide="terminal"></i>Developer</span>
+    <a class="brand brand--pub" href="#dev"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>ADZVANCE</a><span class="side__tag">Developer</span>
     <button class="icon-btn side__toggle" type="button" data-act="side-toggle" aria-label="Buka menu"><i data-lucide="menu"></i></button>
   </div>
   <nav class="side__nav">
@@ -99,7 +102,7 @@
     <a href="#admin"><i data-lucide="layout-dashboard"></i>Panel admin</a>
   </nav>
   <div class="side__foot">
-    <p class="side__note"><i data-lucide="scroll-text"></i>Semua tindakan tercatat di log audit.</p>
+    
     <button class="btn btn--quiet btn--block" type="button" data-act="logout"><i data-lucide="log-out"></i>Keluar</button>
   </div>
 </aside>
@@ -151,7 +154,7 @@
 <footer class="shell shell--public pubfoot">
   <div class="container pubfoot__in">
     <img class="pubfoot__logo" src="img/adzkia-logo.png" alt="SMA Islam Plus Adzkia Medan">
-    <p class="small muted">Kampus I: Jl. Tuasan No. 4 dan 6, Medan<br>Kampus II: Jl. Iskandar Muda No. 244, Medan</p>
+    <p class="small muted">Kampus I · Jl. Tuasan, Medan Tembung<br>Kampus II · Jl. Iskandar Muda, Medan</p>
     <nav class="pubfoot__links" aria-label="Tautan">
       <a href="#tentang">Tentang kami</a><a href="#privasi">Kebijakan privasi</a>
       <a href="https://instagram.com/smaislamplusadzkiamedan" target="_blank" rel="noopener"><i data-lucide="instagram"></i>Instagram sekolah</a>

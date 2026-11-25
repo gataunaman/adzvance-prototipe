@@ -2,10 +2,10 @@
 (function () {
   var A = window.A, V = A.V, esc = A.esc, ic = A.ic;
 
-  function head(title, sub, actions) { return '<div class="page__head"><div><h1>' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div>' + (actions ? '<div class="head__actions">' + actions + '</div>' : '') + '</div>'; }
+  function head(title, sub, actions) { return '<header class="phead"><h1>' + title + '</h1>' + (actions ? '<div class="phead__actions">' + actions + '</div>' : '') + '</header>'; }
   function more(items) { return '<details class="more"><summary class="icon-btn" aria-label="Aksi lainnya">' + ic('ellipsis') + '</summary><div class="more__menu">' + items.join('') + '</div></details>'; }
   function mi(act, id, icon, label, danger, val) { return '<button type="button" data-act="' + act + '" data-id="' + id + '"' + (val ? ' data-val="' + esc(val) + '"' : '') + (danger ? ' class="is-danger"' : '') + '>' + ic(icon) + label + '</button>'; }
-  function filterBadge(l) { return l.filter === 'unclear' ? '<span class="badge badge--warn">Jenjang tidak jelas</span>' : '<span class="badge badge--ok">Lolos, ' + esc(l.jenjangNote || 'SMA, SMK') + '</span>'; }
+  function filterBadge(l) { return l.filter === 'unclear' ? '<span class="stat stat--warn">Jenjang tidak jelas</span>' : '<span class="stat">' + esc(l.jenjangNote || 'SMA, SMK') + '</span>'; }
   function sourceLabel(l) { return l.source === 'Usulan siswa' ? 'Usulan ' + esc(A.short(A.stu(l.suggestedBy) || { name: 'siswa' })) : esc(l.source); }
   A.more = more; A.mi = mi;
 
@@ -18,18 +18,18 @@
     var catCount = { sains: 43, esai: 31, debat: 18, tek: 27, seni: 12 }, max = 43;
     return '<div class="page page--ws">' + head('Ringkasan', 'Data contoh untuk prototipe.', '<button class="btn btn--secondary" type="button" data-act="open-sheet-gs">' + ic('sheet') + 'Buka Google Sheet</button><a class="btn btn--primary" href="#admin-lomba-form" data-act="new-lomba">' + ic('plus') + 'Tambah lomba</a>') +
       '<div class="figures">' +
-      '<div><span class="fig__icon tone-sains">' + ic('users') + '</span><span class="figure">412</span><span class="label">Siswa di daftar sekolah</span></div>' +
-      '<a href="#admin-lomba"><span class="fig__icon tone-debat">' + ic('award') + '</span><span class="figure">' + pub + '</span><span class="label">Lomba aktif</span></a>' +
-      '<a href="#admin-lomba" data-act="admin-tab" data-val="queue"' + (queue.length ? ' class="is-alert"' : '') + '><span class="fig__icon tone-esai">' + ic('inbox') + '</span><span class="figure">' + queue.length + '</span><span class="label">Menunggu tinjauan</span></a>' +
-      '<a href="#admin-forum"' + (reports ? ' class="is-alert"' : '') + '><span class="fig__icon tone-peach">' + ic('flag') + '</span><span class="figure">' + reports + '</span><span class="label">Laporan forum dan chat</span></a></div>' +
+      '<div><span class="figure">412</span><span class="label">Siswa di daftar sekolah</span></div>' +
+      '<a href="#admin-lomba"><span class="figure">' + pub + '</span><span class="label">Lomba aktif</span></a>' +
+      '<a href="#admin-lomba" data-act="admin-tab" data-val="queue"' + (queue.length ? ' class="is-alert"' : '') + '><span class="figure">' + queue.length + '</span><span class="label">Menunggu tinjauan</span></a>' +
+      '<a href="#admin-forum"' + (reports ? ' class="is-alert"' : '') + '><span class="figure">' + reports + '</span><span class="label">Laporan forum dan chat</span></a></div>' +
       '<div class="admin-grid"><div class="well chart"><div class="section-title"><h2>Peserta per kategori</h2><span class="label">Semester ini</span></div><div class="bars">' +
-      Object.keys(catCount).map(function (k) { return '<div class="bar-row"><span>' + A.cat(k).name + '</span><span class="bar-track"><span class="bar-fill fill--' + k + '" style="width:' + Math.round(catCount[k] / max * 100) + '%"></span></span><span class="mono">' + catCount[k] + '</span></div>'; }).join('') + '</div></div>' +
+      Object.keys(catCount).map(function (k) { return '<div class="bar-row"><span>' + A.cat(k).name + '</span><span class="bar-track"><span class="bar-fill' + (catCount[k] === max ? ' is-top' : '') + '" style="width:' + Math.round(catCount[k] / max * 100) + '%"></span></span><span class="mono">' + catCount[k] + '</span></div>'; }).join('') + '</div></div>' +
       '<div class="well"><div class="section-title"><h2>Aktivitas terbaru</h2><a class="link small" href="#admin-fame">' + (pendingFame ? pendingFame + ' prestasi menunggu' : '') + '</a></div><ul class="activity">' +
-      A.S.audit.slice(0, 4).map(function (a) { return '<li><span class="note__icon tone-sains">' + ic('activity') + '</span><div><strong>' + esc(a.who) + '</strong> ' + esc(a.act.toLowerCase()) + ': ' + esc(a.target) + '<div class="small muted">' + esc(a.t) + '</div></div></li>'; }).join('') + '</ul></div></div>' +
+      A.S.audit.slice(0, 4).map(function (a) { return '<li><span><strong>' + esc(a.who) + '</strong> ' + esc(a.act.toLowerCase()) + ': ' + esc(a.target) + '</span><span class="activity__time">' + esc(a.t) + '</span></li>'; }).join('') + '</ul></div></div>' +
       '<div class="section-title" style="margin-top: var(--space-xl)"><h2>Antrean lomba</h2><a class="link small" href="#admin-lomba" data-act="admin-tab" data-val="queue">Semua</a></div>' + queueTable(queue) + '</div>';
   };
   function queueTable(queue) {
-    if (!queue.length) return A.empty('inbox', 'Antrean kosong. Semua lomba sudah ditinjau.');
+    if (!queue.length) return A.empty('inbox', 'Antrean kosong.');
     return '<div class="sheet sheet--ws"><div class="sheet__head"><span>Lomba</span><span>Saringan jenjang</span><span>Sumber</span><span></span></div>' + queue.map(function (l) {
       return '<div class="row"><div><div class="row__title">' + esc(l.title) + '</div><div class="row__sub">' + esc(l.org) + ', tutup ' + A.dateAt(l.dl, false) + '</div></div><div>' + filterBadge(l) + '</div><div class="row__meta">' + sourceLabel(l) + '</div>' +
         '<div class="row__actions"><button class="btn btn--primary" type="button" data-act="publish" data-id="' + l.id + '">Terbitkan</button>' + more([mi('edit-lomba', l.id, 'pencil', 'Ubah'), mi('reject', l.id, 'x', 'Tolak', true)]) + '</div></div>';
@@ -43,7 +43,7 @@
     var list = A.S.lomba.filter(function (l) { return l.status === tab; }).sort(function (a, b) { return a.dl - b.dl; });
     var table = tab === 'queue' ? queueTable(list) : !list.length ? A.empty('award', 'Belum ada lomba di sini.') :
       '<div class="sheet sheet--ws"><div class="sheet__head"><span>Lomba</span><span>Kategori</span><span>Deadline</span><span></span></div>' + list.map(function (l) {
-        return '<div class="row"><div><div class="row__title">' + esc(l.title) + '</div><div class="row__sub">' + esc(l.org) + ', ' + sourceLabel(l) + '</div></div><div><span class="tag tag--' + l.cat + '">' + A.cat(l.cat).name + '</span></div><div class="row__meta mono">' + A.dateAt(l.dl, false) + ' (' + l.dl + ' hari)</div>' +
+        return '<div class="row"><div><div class="row__title">' + esc(l.title) + '</div><div class="row__sub">' + esc(l.org) + ', ' + sourceLabel(l) + '</div></div><div class="row__meta">' + A.cat(l.cat).name + '</div><div class="row__meta mono">' + A.dateAt(l.dl, false) + ' (' + l.dl + ' hari)</div>' +
           '<div class="row__actions"><button class="btn btn--secondary" type="button" data-act="edit-lomba" data-id="' + l.id + '">' + ic('pencil') + 'Ubah</button>' + more(tab === 'published' ? [mi('unpublish', l.id, 'eye-off', 'Turunkan'), mi('del-lomba', l.id, 'trash-2', 'Hapus', true)] : [mi('publish', l.id, 'upload', 'Terbitkan'), mi('del-lomba', l.id, 'trash-2', 'Hapus', true)]) + '</div></div>';
       }).join('') + '</div>';
     return '<div class="page page--ws">' + head('Lomba', 'Lomba dari pencarian Google, usulan siswa, dan tambahan admin.', '<a class="btn btn--primary" href="#admin-lomba-form" data-act="new-lomba">' + ic('plus') + 'Tambah lomba</a>') +
@@ -66,7 +66,7 @@
       '<div class="field"><label>Poster</label><label class="dropzone">' + ic('image-plus') + '<span>Pilih gambar poster (JPG/PNG)</span><input type="file" accept="image/*" data-act="poster" hidden></label></div></div>' +
       '<div class="edit-card"><h2>Jadwal</h2><div class="grid-2"><div class="field"><label for="lf-ev">Pelaksanaan (hari lagi)</label><input class="input" id="lf-ev" name="ev" type="number" value="' + (l.ev || l.dl + 10) + '"></div>' +
       '<div class="field"><label for="lf-ann">Pengumuman (hari lagi)</label><input class="input" id="lf-ann" name="ann" type="number" value="' + (l.ann || l.dl + 20) + '"></div></div>' +
-      '<label class="check" style="margin-top: var(--space-md)"><input type="checkbox" name="ladder"' + (l.ladder ? ' checked' : '') + '>Lomba berjenjang (OSN, FLS2N, O2SN, LKS): lolos ke tingkat berikutnya tampil di Wall of Fame</label></div>' +
+      '<label class="check" style="margin-top: var(--space-md)"><input type="checkbox" name="ladder"' + (l.ladder ? ' checked' : '') + '>Lomba berjenjang (OSN, FLS2N, O2SN, LKS)</label></div>' +
       '<div class="ws-form__foot">' + (l.id ? '<button class="btn btn--quiet is-danger" type="button" data-act="del-lomba" data-id="' + l.id + '">' + ic('trash-2') + 'Hapus lomba</button>' : '<span></span>') + '<div class="head__actions"><a class="btn btn--secondary" href="#admin-lomba">Batal</a><button class="btn btn--primary" type="submit">' + (l.id ? 'Simpan perubahan' : 'Terbitkan lomba') + '</button></div></div></form></div>';
   };
 
@@ -90,12 +90,12 @@
       '<div class="section-title"><h2>Laporan</h2><span class="label">' + open.length + ' terbuka</span></div>' +
       (open.length ? '<div class="report-list">' + open.map(function (r) {
         var by = A.stu(r.by);
-        return '<div class="report"><span class="note__icon tone-peach">' + ic(r.kind === 'chat' ? 'messages-square' : r.kind === 'fame' ? 'star' : 'message-circle') + '</span><div><div class="small muted">' + (r.kind === 'chat' ? 'Chat' : r.kind === 'fame' ? 'Wall of Fame' : 'Forum') + ', ' + esc(r.where) + '</div><p class="report__text">"' + esc(r.text) + '"</p><div class="small muted">Dilaporkan oleh ' + esc(by ? by.name : 'siswa') + '</div></div>' +
+        return '<div class="report"><div><div class="small muted">' + (r.kind === 'chat' ? 'Chat' : r.kind === 'fame' ? 'Wall of Fame' : 'Forum') + ', ' + esc(r.where) + '</div><p class="report__text">"' + esc(r.text) + '"</p><div class="small muted">Dilaporkan oleh ' + esc(by ? by.name : 'siswa') + '</div></div>' +
           '<div class="row__actions"><button class="btn btn--secondary" type="button" data-act="report-remove" data-id="' + r.id + '">' + ic('trash-2') + 'Hapus konten</button><button class="btn btn--quiet" type="button" data-act="report-dismiss" data-id="' + r.id + '">Abaikan</button></div></div>';
       }).join('') + '</div>' : A.empty('shield-check', 'Tidak ada laporan terbuka.')) +
       '<div class="section-title" style="margin-top: var(--space-xl)"><h2>Topik</h2></div><div class="sheet sheet--ws"><div class="sheet__head"><span>Pertanyaan</span><span>Mapel</span><span>Balasan</span><span></span></div>' +
       A.S.threads.map(function (t) {
-        return '<div class="row"><div><div class="row__title">' + (t.pinned ? ic('pin', 'pin-ic') : '') + esc(t.title) + '</div><div class="row__sub">' + esc(A.stu(t.author).name) + '</div></div><div><span class="subj subj--' + t.subj + '">' + A.S.subjects[t.subj] + '</span></div><div class="row__meta mono">' + t.replies.length + '</div>' +
+        return '<div class="row"><div><div class="row__title">' + (t.pinned ? ic('pin', 'pin-ic') : '') + esc(t.title) + '</div><div class="row__sub">' + esc(A.stu(t.author).name) + '</div></div><div class="row__meta">' + A.S.subjects[t.subj] + '</div><div class="row__meta mono">' + t.replies.length + '</div>' +
           '<div class="row__actions"><button class="btn btn--secondary" type="button" data-act="thread-pin" data-id="' + t.id + '">' + ic(t.pinned ? 'pin-off' : 'pin') + (t.pinned ? 'Lepas' : 'Sematkan') + '</button>' + more([mi('thread-edit', t.id, 'pencil', 'Ubah judul'), mi('thread-del', t.id, 'trash-2', 'Hapus topik', true)]) + '</div></div>';
       }).join('') + '</div></div>';
   };
@@ -105,26 +105,26 @@
     var pend = A.S.entries.filter(function (e) { return e.status === 'pending' || e.status === 'info'; });
     var ok = A.S.entries.filter(function (e) { return e.status === 'verified'; }).sort(function (a, b) { return (b.month || '').localeCompare(a.month || '') || b.d - a.d; });
     function proof(e) {
-      return (e.proofLink ? '<span class="link">' + ic('link') + esc(e.proofLink) + '</span>' : '') +
-        (e.proofFile ? '<span>' + ic('image') + esc(e.proofFile) + '</span>' : '') +
-        (e.cert ? '<span>' + ic('paperclip') + 'sertifikat</span>' : '<span class="muted">Belum ada sertifikat</span>');
+      return '<span class="proof">' + (e.proofLink ? '<span class="proof__item" title="' + esc(e.proofLink) + '">' + ic('link') + '<span>' + esc(e.proofLink) + '</span></span>' : '') +
+        (e.proofFile ? '<span class="proof__item">' + ic('image') + '<span>' + esc(e.proofFile) + '</span></span>' : '') +
+        (e.cert ? '<span class="proof__item">' + ic('paperclip') + '<span>Sertifikat</span></span>' : '<span class="proof__item muted"><span>Belum ada sertifikat</span></span>') + '</span>';
     }
     function row(e, live) {
       var mine = A.S.me && e.who.indexOf(A.S.me) !== -1;
       var who = e.who.map(function (id) { var s = A.stu(id); return s ? esc(s.name + ', ' + s.kelas) : ''; }).concat(e.ext ? [esc(e.ext)] : []).join('; ');
-      var badge = live ? '<span class="badge badge--ok">Terbit</span>' : e.status === 'info' ? '<span class="badge">Menunggu siswa</span>' : '<span class="badge badge--warn">Menunggu</span>';
+      var badge = live ? '<span class="stat stat--ok">Terbit</span>' : e.status === 'info' ? '<span class="stat">Menunggu siswa</span>' : '<span class="stat stat--warn">Menunggu</span>';
       var acts = live ? more([mi('entry-edit', e.id, 'pencil', 'Ubah'), mi('entry-down', e.id, 'eye-off', 'Turunkan', true)]) :
         '<button class="btn btn--primary" type="button" data-act="entry-verify" data-id="' + e.id + '"' + (mine ? ' disabled title="Prestasimu sendiri disetujui admin lain"' : '') + '>Setujui</button>' +
         '<button class="btn btn--secondary" type="button" data-act="entry-info" data-id="' + e.id + '">Minta info</button>' + more([mi('entry-edit', e.id, 'pencil', 'Ubah'), mi('entry-reject', e.id, 'x', 'Tolak', true)]);
-      return '<div class="row"><div>' + (e.photo ? '<span class="fame-thumb" style="background-image:url(' + e.photo + ')"></span>' : '') +
+      return '<div class="row"><div class="fame-cell">' + (e.photo ? '<span class="fame-thumb" style="background-image:url(' + e.photo + ')"></span>' : '') + '<div>' +
         '<div class="row__title">' + esc(A.resLabel(e) + ', ' + e.title) + '</div><div class="row__sub">' + who + '</div>' +
         (e.status === 'info' && e.note ? '<div class="row__sub muted">' + ic('message-circle') + ' ' + esc(e.note) + '</div>' : '') +
-        (live && e.month ? '<div class="small muted">Edisi ' + A.monthLabel(e.month) + '</div>' : '') + '</div>' +
-        '<div class="row__meta"><span class="tag">' + esc(e.level) + '</span>' + proof(e) + '</div><div>' + badge + '</div><div class="row__actions">' + acts + '</div></div>';
+        (live && e.month ? '<div class="small muted">Edisi ' + A.monthLabel(e.month) + '</div>' : '') + '</div></div>' +
+        '<div class="row__meta"><span class="lvl">' + esc(e.level) + '</span>' + proof(e) + '</div><div>' + badge + '</div><div class="row__actions">' + acts + '</div></div>';
     }
     return '<div class="page page--ws">' + head('Wall of Fame', 'Prestasi yang disetujui tampil publik di edisi bulan ini.', '<button class="btn btn--primary" type="button" data-act="entry-ig">' + ic('instagram') + 'Tambah dari Instagram sekolah</button>') +
-      '<div class="section-title"><h2>Perlu ditinjau</h2><span class="label">' + pend.length + '</span></div>' + (pend.length ? '<div class="sheet sheet--ws">' + pend.map(function (e) { return row(e, false); }).join('') + '</div>' : A.empty('circle-check', 'Tidak ada pengajuan baru.')) +
-      '<div class="section-title" style="margin-top: var(--space-xl)"><h2>Sudah terbit</h2><span class="label">' + ok.length + '</span></div>' + (ok.length ? '<div class="sheet sheet--ws">' + ok.map(function (e) { return row(e, true); }).join('') + '</div>' : A.empty('star', 'Belum ada prestasi terbit.')) + '</div>';
+      '<div class="section-title"><h2>Perlu ditinjau</h2><span class="label">' + pend.length + '</span></div>' + (pend.length ? '<div class="sheet sheet--ws sheet--fame">' + pend.map(function (e) { return row(e, false); }).join('') + '</div>' : A.empty('circle-check', 'Tidak ada pengajuan baru.')) +
+      '<div class="section-title" style="margin-top: var(--space-xl)"><h2>Sudah terbit</h2><span class="label">' + ok.length + '</span></div>' + (ok.length ? '<div class="sheet sheet--ws sheet--fame">' + ok.map(function (e) { return row(e, true); }).join('') + '</div>' : A.empty('star', 'Belum ada prestasi terbit.')) + '</div>';
   };
 
   /* ---------- pengguna ---------- */
@@ -140,7 +140,7 @@
         items.push(s.active ? mi('deactivate', s.id, 'user-x', 'Nonaktifkan', true) : mi('activate', s.id, 'user-check', 'Aktifkan lagi'));
         return '<div class="row' + (s.active ? '' : ' is-off') + '"><div class="user-cell"><span class="avatar av--' + s.av + '">' + s.ini + '</span><div><div class="row__title">' + esc(s.name) + (s.admin ? ' <span class="tag tag--hot">' + ic('shield-check') + 'Admin</span>' : '') + '</div><div class="row__sub mono">' + s.nisn + '</div></div></div><div class="row__meta">' + esc(s.kelas) + '</div>' +
           '<div class="orgs orgs--tight">' + (s.orgs.length ? s.orgs.map(function (o) { return A.org(o, true); }).join('') : '<span class="small muted">-</span>') + '</div><div><span class="badge ' + (s.active ? 'badge--ok">Aktif' : 'badge--bad">Nonaktif') + '</span></div><div class="row__actions">' + more(items) + '</div></div>';
-      }).join('') + '</div><p class="small muted" style="margin-top: var(--space-sm)">Menampilkan ' + list.length + ' siswa contoh dari 412.</p></div>';
+      }).join('') + '</div></div>';
   };
 
   /* ---------- tag & organisasi ---------- */
@@ -161,7 +161,7 @@
       '<button class="btn btn--primary btn--block" type="submit">Lanjut</button><div class="auth__foot"><a class="link" href="#masuk">Halaman siswa</a></div></form></div></div>';
   };
   V['dev-2fa'] = function () {
-    return '<div class="auth auth--dev"><div class="auth__main"><form class="auth__form" data-form="dev-2fa"><p class="brand auth__brand">ADZVANCE <span class="brand__tag">Developer</span></p><h2>Kode authenticator</h2><p>Kode 6 angka dari aplikasi authenticator. Untuk demo, isi angka apa saja.</p>' +
+    return '<div class="auth auth--dev"><div class="auth__main"><form class="auth__form" data-form="dev-2fa"><p class="brand auth__brand">ADZVANCE <span class="brand__tag">Developer</span></p><h2>Kode authenticator</h2>' +
       '<div class="field"><label for="d2-code">Kode</label><input class="input input--code" id="d2-code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" value="123456"></div><button class="btn btn--primary btn--block" type="submit">Verifikasi</button><div class="auth__foot"><a class="link" href="#dev-masuk">Kembali</a></div></form></div></div>';
   };
 
@@ -182,12 +182,12 @@
     var st = A.S.settings;
     return '<div class="page page--ws">' + head('Pencari lomba', 'Mencari lomba lewat Google setiap hari, lalu menyaring jenjang SMA, SMK, dan Umum.', '<button class="btn btn--primary" type="button" data-act="run-crawler">' + ic('refresh-cw') + 'Jalankan sekarang</button>') +
       '<div class="ws-two"><div class="edit-card"><h2>Pengaturan</h2>' +
-      '<div class="setting"><div><strong>Mode terbit</strong><p>Tinjau dulu atau langsung terbit kalau lolos saringan.</p></div><div class="seg"><label><input type="radio" name="mode" value="review" data-act="publish-mode"' + (st.publishMode === 'review' ? ' checked' : '') + '>Tinjau dulu</label><label><input type="radio" name="mode" value="auto" data-act="publish-mode"' + (st.publishMode === 'auto' ? ' checked' : '') + '>Otomatis</label></div></div>' +
-      '<div class="setting"><div><strong>Saringan jenjang</strong><p>Simpan SMA, SMK, Umum. Buang Mahasiswa, SD, SMP. Tidak jelas masuk antrean.</p></div><span class="badge">Tetap</span></div>' +
+      '<div class="setting"><div><strong>Mode terbit</strong></div><div class="seg"><label><input type="radio" name="mode" value="review" data-act="publish-mode"' + (st.publishMode === 'review' ? ' checked' : '') + '>Tinjau dulu</label><label><input type="radio" name="mode" value="auto" data-act="publish-mode"' + (st.publishMode === 'auto' ? ' checked' : '') + '>Otomatis</label></div></div>' +
+      '<div class="setting"><div><strong>Saringan jenjang</strong></div><span class="badge">Tetap</span></div>' +
       '<h3 style="margin-top: var(--space-lg)">Kata kunci pencarian</h3><div class="tags tags--edit" style="margin-top: var(--space-xs)">' + st.terms.map(function (t, i) { return '<span class="tag">' + esc(t) + '<button type="button" class="chip-x" data-act="term-del" data-id="' + i + '" aria-label="Hapus">' + ic('x') + '</button></span>'; }).join('') + '</div>' +
       '<form class="composer" data-form="term"><input class="input" name="term" placeholder="Tambah kata kunci, mis. lomba debat pelajar" aria-label="Kata kunci baru"><button class="btn btn--secondary" type="submit">Tambah</button></form></div>' +
       '<div><h2>Pencarian terakhir</h2><div class="figures figures--2" style="margin-top: var(--space-sm)"><div><span class="figure">31</span><span class="label">Hasil Google</span></div><div><span class="figure">12</span><span class="label">Lolos saringan</span></div><div><span class="figure">17</span><span class="label">Ditolak otomatis</span></div><div><span class="figure">2</span><span class="label">Jenjang tidak jelas</span></div></div>' +
-      '<p class="small muted" style="margin-top: var(--space-sm)">Berjalan setiap hari pukul 05.00. Lomba yang sama dari beberapa situs digabung.</p></div></div></div>';
+      '</div></div></div>';
   };
 
   V['dev-akun'] = function () {
@@ -198,9 +198,9 @@
           '<div class="row__actions">' + (s.ketua ? '<button class="btn btn--secondary" type="button" data-act="change-ketua">Ganti ketua</button>' : '<button class="btn btn--secondary is-danger" type="button" data-act="revoke-admin" data-id="' + s.id + '">' + ic('shield-off') + 'Cabut admin</button>') + '</div></div>';
       }).join('') + '</div>' +
       '<div class="ws-two" style="margin-top: var(--space-xl)"><div class="edit-card"><h2>Sistem</h2>' +
-      [['maintenance', 'Mode pemeliharaan', 'Siswa melihat halaman pemeliharaan.'], ['chat', 'Chat tim', 'Matikan kalau sekolah tidak memakai chat.'], ['forum', 'Forum Soal', '']].map(function (x) { return '<div class="setting"><div><strong>' + x[1] + '</strong>' + (x[2] ? '<p>' + x[2] + '</p>' : '') + '</div><label class="switch"><input type="checkbox"' + (st[x[0]] ? ' checked' : '') + ' data-act="sys" data-val="' + x[0] + '" aria-label="' + x[1] + '"><span></span></label></div>'; }).join('') +
+      [['maintenance', 'Mode pemeliharaan', ''], ['chat', 'Chat tim', ''], ['forum', 'Forum Soal', '']].map(function (x) { return '<div class="setting"><div><strong>' + x[1] + '</strong>' + (x[2] ? '<p>' + x[2] + '</p>' : '') + '</div><label class="switch"><input type="checkbox"' + (st[x[0]] ? ' checked' : '') + ' data-act="sys" data-val="' + x[0] + '" aria-label="' + x[1] + '"><span></span></label></div>'; }).join('') +
       '<div class="setting"><div><strong>Batas lampiran chat</strong></div><span class="mono">10 MB, dokumen</span></div><div class="setting"><div><strong>Batas foto profil</strong></div><span class="mono">2 MB</span></div></div>' +
-      '<div class="edit-card"><h2>Daftar siswa</h2><p class="small muted">Diimpor dari file sekolah di server. Isi file tidak ditampilkan di sini.</p><div class="figures figures--2" style="margin-top: var(--space-sm)"><div><span class="figure">412</span><span class="label">Siswa terimpor</span></div><div><span class="figure">3</span><span class="label">Baris dilewati</span></div></div><p class="small muted" style="margin-top: var(--space-sm)">Impor terakhir: 20 Nov 2026, 10.12</p></div></div></div>';
+      '<div class="edit-card"><h2>Daftar siswa</h2><div class="figures figures--2" style="margin-top: var(--space-sm)"><div><span class="figure">412</span><span class="label">Siswa terimpor</span></div><div><span class="figure">3</span><span class="label">Baris dilewati</span></div></div><p class="small muted" style="margin-top: var(--space-sm)">Impor terakhir: 20 Nov 2026, 10.12</p></div></div></div>';
   };
 
   V['dev-audit'] = function () {

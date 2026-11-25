@@ -54,7 +54,7 @@
   /* ---------- lomba ---------- */
   ACT.save = function (el) {
     var id = el.dataset.id, b = S().bookmarks[S().me] = S().bookmarks[S().me] || [], i = b.indexOf(id);
-    if (i === -1) { b.push(id); A.toast('Disimpan. Kamu dapat pengingat deadline.'); } else { b.splice(i, 1); A.toast('Dihapus dari simpanan'); }
+    if (i === -1) { b.push(id); A.toast('Disimpan'); } else { b.splice(i, 1); A.toast('Dihapus dari simpanan'); }
   };
   ACT.filter = function (el) { var g = el.dataset.group, v = el.dataset.val; A.ui.filters[g] = (v === 'undefined' || A.ui.filters[g] === v) ? undefined : v; };
   ACT['filter-cat'] = function (el) { A.ui.filters = { cat: el.dataset.id }; A.ui.q = ''; A.ui.lombaTab = 'all'; };
@@ -69,7 +69,7 @@
     var l = A.lomba(el.dataset.id), teams = S().teams.filter(function (t) { return t.members.indexOf(S().me) !== -1; });
     A.sheet('Saya ikut', '<p class="muted">' + esc(l.title) + '</p><div class="field"><span class="label">Ikut sebagai</span><div class="seg"><label><input type="radio" name="as" value="solo" checked>Sendiri</label><label><input type="radio" name="as" value="team">Dengan tim</label></div></div>' +
       (teams.length ? '<div class="field"><label for="j-team">Tim</label><select class="input" id="j-team" name="team">' + opt(teams.map(function (t) { return [t.id, t.name]; })) + '</select></div>' : '') +
-      '<div class="field"><span class="label">Bukti pendaftaran (opsional)</span><label class="dropzone">' + ic('upload') + '<span data-fill="fname">Pilih file (JPG, PNG, PDF)</span><input type="file" name="proof" accept="image/*,.pdf" data-act="file-name" hidden></label></div><p class="small muted">OSIS memeriksa bukti ini sebelum namamu masuk rekap.</p>', 'join:' + l.id, 'Konfirmasi');
+      '<div class="field"><span class="label">Bukti pendaftaran (opsional)</span><label class="dropzone">' + ic('upload') + '<span data-fill="fname">Pilih file (JPG, PNG, PDF)</span><input type="file" name="proof" accept="image/*,.pdf" data-act="file-name" hidden></label></div>', 'join:' + l.id, 'Konfirmasi');
     return false;
   };
   function lvl(l) { return l === 'Kabupaten' || l === 'Kota' ? 'Kabupaten/Kota' : l; }
@@ -77,7 +77,7 @@
     var l = A.lomba(id), team = f.elements['as'].value === 'team' && f.elements['team'] ? byId(S().teams, f.elements['team'].value) : null;
     var e = { id: A.uid('e'), lomba: l.id, title: l.title, org: l.org, cat: l.cat, level: lvl(l.level), ladder: !!l.ladder, who: team ? team.members.slice() : [S().me], result: 'Terdaftar', status: 'joined' };
     S().entries.push(e); addedNotice(e, e.who);
-    A.audit('Siswa ikut lomba', l.title); A.toast('Tercatat. Semoga sukses!'); return true;
+    A.audit('Siswa ikut lomba', l.title); A.toast('Tercatat'); return true;
   };
   ACT.unjoin = function (el) { S().entries = S().entries.filter(function (e) { return e.id !== el.dataset.id; }); A.toast('Dibatalkan'); };
   ACT['entry-leave'] = function (el) { var e = entry(el.dataset.id); e.who = e.who.filter(function (id) { return id !== S().me; }); A.toast('Kamu keluar dari tim ini'); };
@@ -86,24 +86,24 @@
     var e = entry(el.dataset.id), v = el.value;
     if (A.resInfo(v).wall) { entrySheet(e, v); return false; } // a win goes to OSIS with proof
     e.result = v; e.status = 'joined';
-    A.toast(v === 'Terdaftar' ? 'Disimpan' : 'Tersimpan. Hanya kamu dan timmu yang melihat ini.');
+    A.toast(v === 'Terdaftar' ? 'Disimpan' : 'Tersimpan');
   };
   ACT['view-lomba-go'] = function (el) { A.ui.viewLomba = el.dataset.id; A.go('#lomba-detail'); return false; };
 
   ACT['suggest-lomba'] = function () {
-    A.sheet('Usulkan lomba', '<div class="field"><label for="sg-title">Nama lomba</label><input class="input" id="sg-title" name="title" required></div><div class="field"><label for="sg-org">Penyelenggara</label><input class="input" id="sg-org" name="org" required></div><div class="field"><label for="sg-link">Tautan info</label><input class="input" id="sg-link" name="link" placeholder="https://"></div><div class="field"><label for="sg-cat">Kategori</label><select class="input" id="sg-cat" name="cat">' + opt(Object.keys(S().cats).map(function (k) { return [k, S().cats[k].name]; })) + '</select></div><p class="small muted">Tampil setelah disetujui admin OSIS.</p>', 'suggest', 'Kirim usulan');
+    A.sheet('Usulkan lomba', '<div class="field"><label for="sg-title">Nama lomba</label><input class="input" id="sg-title" name="title" required></div><div class="field"><label for="sg-org">Penyelenggara</label><input class="input" id="sg-org" name="org" required></div><div class="field"><label for="sg-link">Tautan info</label><input class="input" id="sg-link" name="link" placeholder="https://"></div><div class="field"><label for="sg-cat">Kategori</label><select class="input" id="sg-cat" name="cat">' + opt(Object.keys(S().cats).map(function (k) { return [k, S().cats[k].name]; })) + '</select></div>', 'suggest', 'Kirim usulan');
     return false;
   };
   FORM.suggest = function (f) {
     S().lomba.push({ id: A.uid('l'), title: f.elements['title'].value, org: f.elements['org'].value, cat: f.elements['cat'].value, form: 'Online', level: 'Nasional', fee: 0, dl: 21, status: 'queue', source: 'Usulan siswa', suggestedBy: S().me, jenjangNote: 'Perlu dicek', filter: 'unclear' });
-    A.toast('Usulan terkirim ke admin OSIS'); return true;
+    A.toast('Usulan terkirim'); return true;
   };
 
   /* ---------- partner and teams ---------- */
   ACT.apply = function (el) {
     var p = byId(S().posts, el.dataset.id); p.applicants.push(S().me);
     A.notify(p.author, { icon: 'user-plus', tone: 'tek', text: me().name + ' mengajukan diri ke timmu.', href: '#partner' });
-    A.toast('Terkirim. Tunggu jawaban ' + A.stu(p.author).name.split(' ')[0]);
+    A.toast('Terkirim');
   };
   ACT.skill = function (el) { A.ui.skill = A.ui.skill === el.dataset.val ? null : el.dataset.val; };
   ACT.kelas = function (el) { A.ui.kelas = A.ui.kelas === el.dataset.val ? null : el.dataset.val; };
@@ -118,7 +118,7 @@
   FORM.post = function (f) {
     var skills = Array.prototype.slice.call(f.querySelectorAll('[name=skill]:checked')).map(function (c) { return c.value; });
     S().posts.unshift({ id: A.uid('p'), author: S().me, lomba: f.elements['lomba'].value, text: f.elements['text'].value, skills: skills, filled: 1, total: +f.elements['total'].value, applicants: [] });
-    A.toast('Posting terbit di Cari Partner'); A.go('#partner'); return true;
+    A.toast('Posting terbit'); A.go('#partner'); return true;
   };
   ACT['invite-accept'] = function (el) {
     var inv = byId(S().invites, el.dataset.id), l = A.lomba(inv.lomba), from = A.stu(inv.from); inv.status = 'accepted';
@@ -140,7 +140,7 @@
   ACT['report-msg'] = function (el) {
     var p = pair(el.dataset.id), t = byId(S().teams, p[0]), m = t.messages[+p[1]];
     S().reports.unshift({ id: A.uid('rp'), kind: 'chat', where: t.name, by: S().me, text: m.text, status: 'open' });
-    A.toast('Dilaporkan ke admin dan developer'); return false;
+    A.toast('Dilaporkan'); return false;
   };
 
   /* ---------- forum ---------- */
@@ -198,13 +198,13 @@
       '<div class="field"><label for="en-x">Anggota dari sekolah lain (opsional)</label><input class="input" id="en-x" name="ext" value="' + esc(e.ext || '') + '" placeholder="Contoh: Budi (SMA Negeri 1 Medan)"></div>' +
       '<div class="field"><label for="en-p">Bukti: tautan pengumuman resmi</label><input class="input" id="en-p" name="link" value="' + esc(e.proofLink || '') + '" placeholder="Instagram sekolah atau penyelenggara, situs lomba"></div>' +
       '<div class="field"><span class="label">atau tangkapan layar pengumuman' + (e.proofFile ? ' (sudah ada: ' + esc(e.proofFile) + ')' : '') + '</span>' + drop('proof', 'Pilih gambar', 'image/*,.pdf') + '</div>' +
-      '<div class="grid-2"><div class="field"><span class="label">Sertifikat (opsional)</span>' + drop('cert', 'Bisa menyusul', 'image/*,.pdf') + '</div><div class="field"><span class="label">Foto bersama (opsional)</span>' + drop('photo', 'JPG atau PNG, maks. 2 MB', 'image/png,image/jpeg') + '</div></div>' +
-      '<p class="small muted">Cukup satu bukti. Setelah disetujui OSIS, tampil publik di Wall of Fame dan di profil semua anggota tim.</p>';
+      '<div class="grid-2"><div class="field"><span class="label">Sertifikat (opsional)</span>' + drop('cert', 'Bisa menyusul', 'image/*,.pdf') + '</div><div class="field"><span class="label">Foto bersama (opsional)</span>' + drop('photo', 'Maks. 2 MB', 'image/png,image/jpeg') + '</div></div>' +
+      '';
     A.sheet(isNew ? 'Tambah prestasi' : 'Kirim hasil ke OSIS', body, 'entry:' + (isNew ? 'new' : e.id), 'Kirim ke OSIS');
   }
   function addedNotice(e, ids) {
     ids.filter(function (id) { return id !== S().me; }).forEach(function (id) {
-      A.notify(id, { icon: 'user-plus', tone: 'tek', text: (me() ? me().name : 'OSIS') + ' menambahkanmu ke tim: ' + e.title + '. Bukan timmu? Buka dan pilih "Bukan timku".', href: e.lomba ? '#lomba-detail' : '#profil-edit', lomba: e.lomba });
+      A.notify(id, { icon: 'user-plus', tone: 'tek', text: (me() ? me().name : 'OSIS') + ' menambahkanmu ke tim: ' + e.title + '.', href: e.lomba ? '#lomba-detail' : '#profil-edit', lomba: e.lomba });
     });
   }
   function checkedWho(f) { return Array.prototype.slice.call(f.querySelectorAll('[name=who]:checked')).map(function (c) { return c.value; }); }
@@ -225,15 +225,15 @@
     readFile(f.elements['photo'], function (url) { e.photo = url; A.save(); A.rerender(); });
     if (e.d == null) e.d = 0;
     e.status = 'pending'; e.note = '';
-    A.toast('Terkirim ke OSIS. Kamu dapat notifikasi setelah diperiksa.'); return true;
+    A.toast('Terkirim ke OSIS'); return true;
   };
-  ACT['entry-cert'] = function (el) { A.sheet('Tambah sertifikat', '<div class="field"><span class="label">Sertifikat atau piagam</span>' + drop('cert', 'Pilih file (JPG, PNG, PDF)', 'image/*,.pdf') + '</div><p class="small muted">Hanya admin yang melihat file ini.</p>', 'entry-cert:' + el.dataset.id, 'Simpan'); return false; };
+  ACT['entry-cert'] = function (el) { A.sheet('Tambah sertifikat', '<div class="field"><span class="label">Sertifikat atau piagam</span>' + drop('cert', 'Pilih file (JPG, PNG, PDF)', 'image/*,.pdf') + '</div>', 'entry-cert:' + el.dataset.id, 'Simpan'); return false; };
   FORM['entry-cert'] = function (f, id) { var file = f.elements['cert'].files[0]; if (!file) { A.toast('Pilih file dulu'); return false; } entry(id).cert = file.name; A.toast('Sertifikat tersimpan'); return true; };
   ACT['entry-next'] = function (el) {
     var e = entry(el.dataset.id), next = A.LEVELS[A.LEVELS.indexOf(e.level) + 1];
     var n = { id: A.uid('e'), title: e.title, org: e.org, cat: e.cat, level: next, ladder: true, prev: e.id, who: e.who.slice(), ext: e.ext, result: 'Terdaftar', status: 'joined' };
     S().entries.push(n); addedNotice(n, n.who);
-    A.toast('Tingkat ' + next + ' ditambahkan. Perbarui hasilnya di Ubah profil.');
+    A.toast('Tingkat ' + next + ' ditambahkan');
   };
   ACT['view-entry'] = function (el) { A.ui.viewEntry = el.dataset.id; };
   ACT['fame-month'] = function (el) { if (el.dataset.val) A.ui.fameMonth = el.dataset.val; };
@@ -333,7 +333,7 @@
   };
   function noteSheet(el, title, field, form, submit) {
     var e = entry(el.dataset.id);
-    A.sheet(title, '<p class="muted">' + esc(label(e)) + '</p><div class="field"><label for="nt">' + field + '</label><textarea class="input" id="nt" name="note" required rows="4"></textarea></div><p class="small muted">Siswa melihat catatan ini.</p>', form + ':' + e.id, submit);
+    A.sheet(title, '<p class="muted">' + esc(label(e)) + '</p><div class="field"><label for="nt">' + field + '</label><textarea class="input" id="nt" name="note" required rows="4"></textarea></div>', form + ':' + e.id, submit);
     return false;
   }
   ACT['entry-info'] = function (el) { return noteSheet(el, 'Minta bukti tambahan', 'Yang perlu dilengkapi', 'entry-info', 'Kirim ke siswa'); };
@@ -372,7 +372,7 @@
       compFields({ level: 'Kabupaten/Kota' }) + resultFields({}, 'Juara 1', false) +
       '<div class="field"><span class="label">Siswa</span>' + studentPicks([], false) + '</div>' +
       '<div class="field"><label for="ig-x">Anggota dari sekolah lain (opsional)</label><input class="input" id="ig-x" name="ext"></div>' +
-      '<div class="field"><span class="label">Foto (opsional)</span>' + drop('photo', 'JPG atau PNG, maks. 2 MB', 'image/png,image/jpeg') + '</div>', 'entry-ig', 'Terbitkan');
+      '<div class="field"><span class="label">Foto (opsional)</span>' + drop('photo', 'Maks. 2 MB', 'image/png,image/jpeg') + '</div>', 'entry-ig', 'Terbitkan');
     return false;
   };
   FORM['entry-ig'] = function (f) {
@@ -385,7 +385,7 @@
     e.status = self ? 'pending' : 'verified'; if (!self) e.month = A.monthKey(0);
     S().entries.push(e);
     readFile(f.elements['photo'], function (url) { e.photo = url; A.save(); A.rerender(); });
-    if (!self) tell(e, { icon: 'medal', tone: 'gold', text: 'OSIS menambahkan prestasimu "' + label(e) + '" ke Wall of Fame. Ada yang salah? Laporkan dari halaman prestasi.', href: '#prestasi', entry: e.id });
+    if (!self) tell(e, { icon: 'medal', tone: 'gold', text: 'OSIS menambahkan prestasimu "' + label(e) + '" ke Wall of Fame.', href: '#prestasi', entry: e.id });
     A.audit('Menambah prestasi dari Instagram sekolah', label(e));
     A.toast(self ? 'Ada namamu, jadi admin lain yang menyetujui' : 'Terbit di Wall of Fame'); return true;
   };
@@ -406,7 +406,7 @@
   function setAdmin(id, on) {
     var s = A.stu(id); s.admin = on;
     A.audit(on ? 'Memberi hak admin' : 'Mencabut hak admin', s.name);
-    A.notify(id, on ? { icon: 'shield-check', tone: 'peach', text: 'Kamu sekarang admin. Buka menu profil, lalu Mode admin.', href: '#beranda' } : { icon: 'shield-off', tone: 'peach', text: 'Hak admin kamu dicabut.', href: '#beranda' });
+    A.notify(id, on ? { icon: 'shield-check', tone: 'peach', text: 'Kamu sekarang admin.', href: '#beranda' } : { icon: 'shield-off', tone: 'peach', text: 'Hak admin kamu dicabut.', href: '#beranda' });
     A.toast(on ? s.name + ' sekarang admin' : 'Hak admin ' + s.name + ' dicabut');
   }
   ACT['grant-admin'] = function (el) { setAdmin(el.dataset.id, true); A.closeSheet(); };
@@ -421,7 +421,7 @@
   }
   ACT['change-ketua'] = function () {
     var cur = S().students.find(function (s) { return s.ketua; });
-    A.sheet('Ganti Ketua OSIS', '<p class="small muted">Ketua OSIS otomatis mendapat hak admin. Ketua lama tetap admin sampai dicabut.</p><div class="field"><label for="kt">Ketua baru</label><select class="input" id="kt" name="who">' + opt(S().students.filter(function (s) { return s.active; }).map(function (s) { return [s.id, s.name + ', ' + s.kelas]; }), cur && cur.id) + '</select></div>', 'ketua', 'Simpan');
+    A.sheet('Ganti Ketua OSIS', '<div class="field"><label for="kt">Ketua baru</label><select class="input" id="kt" name="who">' + opt(S().students.filter(function (s) { return s.active; }).map(function (s) { return [s.id, s.name + ', ' + s.kelas]; }), cur && cur.id) + '</select></div>', 'ketua', 'Simpan');
     return false;
   };
   FORM.ketua = function (f) { S().students.forEach(function (s) { s.ketua = false; }); var s = A.stu(f.elements['who'].value); s.ketua = true; s.admin = true; if (!s.orgs.some(function (o) { return o[0] === 'osis' && o[1] === 'Ketua'; })) s.orgs.unshift(['osis', 'Ketua']); A.audit('Mengganti Ketua OSIS', s.name); A.toast(s.name + ' sekarang Ketua OSIS'); return true; };
