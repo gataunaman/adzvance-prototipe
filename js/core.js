@@ -76,6 +76,21 @@
 
   A.empty = function (icon, title, action) { return '<div class="empty">' + A.ic(icon) + '<p>' + title + '</p>' + (action || '') + '</div>'; };
 
+  /* ---------- materials: stickers celebrate, the crest stamp verifies, prints hold faces ---------- */
+  A.sticker = function (text, tone) { return '<span class="sticker' + (tone ? ' sticker--' + tone : '') + '">' + A.esc(text) + '</span>'; };
+  var stampN = 0;
+  A.stamp = function (text, cls) {
+    var id = 'stp' + (++stampN), t = A.esc(text).toUpperCase() + ' · ';
+    return '<span class="stamp-seal' + (cls ? ' ' + cls : '') + '" role="img" aria-label="' + A.esc(text) + '"><svg viewBox="0 0 100 100" aria-hidden="true">' +
+      '<defs><path id="' + id + '" d="M50,50 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0"/></defs>' +
+      '<circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+      '<text font-size="10.5" font-weight="700" letter-spacing="1" fill="currentColor"><textPath href="#' + id + '" textLength="228">' + t + t + '</textPath></text></svg>' +
+      '<span class="stamp-seal__crest"><img src="img/adzkia-logo.png" alt=""></span></span>';
+  };
+  A.print = function (s, cls) {
+    return s.photo ? '<span class="print' + (cls ? ' ' + cls : '') + '"><img src="' + s.photo + '" alt=""></span>' : '<span class="print print--ini' + (cls ? ' ' + cls : '') + '"><span>' + A.esc(s.ini) + '</span></span>';
+  };
+
   /* ---------- side effects ---------- */
   A.notify = function (who, n) {
     var ids = who === 'all' ? A.S.students.map(function (s) { return s.id; }) : [].concat(who);
@@ -139,13 +154,19 @@
     if (!keepScroll && !s.sub) window.scrollTo(0, 0);
     A.ui.menu = false;
     document.body.dataset.kind = kind;
-    if (!keepScroll) countUp();
+    if (!keepScroll && !seen[s.id]) { seen[s.id] = 1; settle(box); }
     A.save();
   };
-  /* colour theme: the days-left figure on the home deadline card counts up once */
-  function countUp() {
-    if (document.documentElement.dataset.theme !== 'colour' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    document.querySelectorAll('.feature .figure').forEach(function (el) {
+  /* physical motion, once per screen per visit: things settle onto the desk, stickers slap on, the deadline counts up */
+  var seen = {};
+  function settle(box) {
+    if (!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    box.classList.add('is-settling');
+    setTimeout(function () { box.classList.remove('is-settling'); }, 1400);
+    countUp(box);
+  }
+  function countUp(box) {
+    box.querySelectorAll('.feature .figure').forEach(function (el) {
       var to = parseInt(el.textContent, 10), t0 = performance.now();
       if (!(to > 0)) return;
       (function step(t) { var p = Math.min(1, (t - t0) / 500); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); })(t0);

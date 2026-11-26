@@ -5,8 +5,7 @@
 .avatar, .avatar[class*="av--"], .av--sains, .av--esai, .av--debat, .av--tek, .av--seni { background-color: var(--color-paper-2); color: var(--color-ink); box-shadow: inset 0 0 0 1px var(--color-rule); }
 .avatar--photo { box-shadow: none; }
 .bar .avatar, .bar .avatar-btn { background: var(--color-paper-2); color: var(--color-ink); }
-.tag--sains::before, .tag--esai::before, .tag--debat::before, .tag--tek::before, .tag--seni::before, .dot[class*="dot--"] { display: none !important; }
-.subj, .subj[class*="subj--"] { min-width: 0; height: auto; padding: 3px 10px; border-radius: var(--radius-pill); background: transparent !important; border: 1px solid var(--color-rule-2); color: var(--color-ink-2) !important; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; }
+.subj, .subj[class*="subj--"] { min-width: 0; height: auto; padding: 3px 10px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--color-rule-2); color: var(--color-ink-2); font-size: 0.8125rem; font-weight: 500; letter-spacing: 0; }
 .note__icon, .note__icon[class*="tone-"] { width: 20px; height: 20px; background: none !important; color: var(--color-muted) !important; border-radius: 0; }
 .note__icon svg { width: 16px; height: 16px; }
 .note--unread .note__icon { color: var(--color-accent-deep) !important; }

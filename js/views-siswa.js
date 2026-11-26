@@ -18,7 +18,7 @@
   A.roleText = roleText;
   /* one competition as a hairline row: days left, title, category/form/date, save */
   function lrow(l) {
-    return '<div class="row" data-cat="' + l.cat + '"><div class="row__days"><span class="figure">' + l.dl + '</span><span class="label">hari lagi</span></div><div><div class="row__title">' + lombaLink(l) + '</div><div class="row__sub">' + A.cat(l.cat).name + ' · ' + l.form + ' · tutup ' + A.dateAt(l.dl, false) + '</div></div><div class="row__actions">' + saveBtn(l) + '</div></div>';
+    return '<div class="row" data-cat="' + l.cat + '"><div class="row__days"><span class="figure">' + l.dl + '</span><span class="label">hari lagi</span></div><div><div class="row__title">' + lombaLink(l) + '</div><div class="row__sub"><span class="dot dot--' + l.cat + '"></span>' + A.cat(l.cat).name + ' · ' + l.form + ' · tutup ' + A.dateAt(l.dl, false) + '</div></div><div class="row__actions">' + saveBtn(l) + '</div></div>';
   }
   /* an organisation role as plain text, e.g. "Sekretaris OSIS" */
   /* partner filters are selects; the shared change dispatcher calls these and rerenders */
@@ -45,7 +45,8 @@
     if (open) {
       h += '<label class="label" for="hasil">Hasil akhir</label><select class="input" id="hasil" data-act="result" data-id="' + e.id + '">' + resultOptions(e).map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === e.result ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
       if (priv) h += '<p class="small muted">' + ic('lock') + ' Privat</p>';
-    } else h += '<span class="fres fres--' + (A.resInfo(e.result).cls || 'soft') + '">' + esc(A.resLabel(e)) + ' · ' + esc(e.level) + '</span>';
+    } else if (e.status === 'verified' && A.isWin(e)) h += '<div class="joinbox__win">' + A.sticker(A.resLabel(e)) + '<span class="small muted">' + esc(e.level) + '</span></div>' + A.stamp('Diverifikasi OSIS', 'joinbox__stamp');
+    else h += '<span class="fres fres--' + (A.resInfo(e.result).cls || 'soft') + '">' + esc(A.resLabel(e)) + ' · ' + esc(e.level) + '</span>';
     if (e.note && (e.status === 'info' || e.status === 'rejected')) h += '<p class="joinbox__note">' + esc(e.note) + '</p>';
     if (e.status === 'info' || (e.status === 'rejected' && A.isWin(e))) h += '<button class="btn btn--primary btn--block" type="button" data-act="entry-open" data-id="' + e.id + '">' + ic('upload') + (e.status === 'info' ? 'Lengkapi bukti' : 'Kirim ulang') + '</button>';
     if (e.status === 'verified') {
@@ -92,7 +93,7 @@
   /* ---------- beranda ---------- */
   function annItem(a) {
     var s = A.stu(a.author);
-    return '<article class="ann' + (a.pinned ? ' ann--pinned' : '') + '">' + (a.pinned ? '<span class="ann__pin">' + ic('pin') + 'Disematkan</span>' : '') +
+    return '<article class="ann' + (a.pinned ? ' ann--pinned' : '') + '">' + (a.pinned ? '<span class="ann__pin">' + ic('pin') + 'Disematkan</span>' + A.stamp('OSIS Adzkia', 'ann__stamp') : '') +
       '<h3>' + esc(a.title) + '</h3><p>' + esc(a.body) + '</p>' +
       '<div class="ann__by">' + A.avatar(s) + '<span>' + A.name(s, true) + '</span>' + roleText(s) + '<span class="muted small">' + A.dateAt(a.d, false) + '</span>' + (a.link ? '<a class="link small" href="' + esc(a.link) + '">Buka</a>' : '') + '</div></article>';
   }
@@ -143,7 +144,7 @@
       }).join('') + '</div></div>';
     h += '<div><div class="section-title"><h2>Cocok dengan minatmu</h2><a class="link small" href="#profil-edit">Atur minat</a></div>' +
       (rec.length ? '<div class="sheet sheet--compact sheet--rec">' + rec.map(lrow).join('') + '</div>' : A.empty('sparkles', 'Belum ada rekomendasi.')) + '</div>';
-    if (fame) h += '<div><div class="section-title"><h2>Prestasi terbaru</h2><a class="link small" href="#wall">Wall of Fame</a></div><a class="famerow" href="#prestasi" data-act="view-entry" data-id="' + fame.id + '"><span class="famerow__res">' + esc(A.resLabel(fame)) + '</span><span class="famerow__main"><strong>' + esc(fame.title) + '</strong><span class="small muted">' + fame.who.map(function (id) { return esc(A.stu(id).name); }).join(', ') + '</span></span>' + ic('arrow-up-right') + '</a></div>';
+    if (fame) h += '<div><div class="section-title"><h2>Prestasi terbaru</h2><a class="link small" href="#wall">Wall of Fame</a></div><a class="famerow" href="#prestasi" data-act="view-entry" data-id="' + fame.id + '"><span class="famerow__res">' + A.sticker(A.resLabel(fame)) + '</span><span class="famerow__main"><strong>' + esc(fame.title) + '</strong><span class="small muted">' + fame.who.map(function (id) { return esc(A.stu(id).name); }).join(', ') + '</span></span>' + ic('arrow-up-right') + '</a></div>';
     h += '</div>';
 
     h += '<aside class="stack">';
@@ -176,7 +177,7 @@
     return true;
   }
   function card(l) {
-    return '<article class="card' + (l.dl <= 7 ? ' card--hot' : '') + '" data-cat="' + l.cat + '"><a class="card__poster poster--' + l.cat + '" href="#lomba-detail" data-act="view-lomba" data-id="' + l.id + '">' + ic(A.cat(l.cat).icon, 'poster__icon') + '<span class="card__days"><span class="figure figure--s">' + l.dl + '</span> hari</span></a>' +
+    return '<article class="card' + (l.dl <= 7 ? ' card--hot' : '') + '" data-cat="' + l.cat + '">' + (A.entryFor(l.id) ? A.sticker('Ikut', 'ink card__joined') : '') + '<a class="card__poster poster--' + l.cat + '" href="#lomba-detail" data-act="view-lomba" data-id="' + l.id + '">' + ic(A.cat(l.cat).icon, 'poster__icon') + '<span class="card__days"><span class="figure figure--s">' + l.dl + '</span> hari</span></a>' +
       '<div class="card__body"><h2 class="card__title">' + lombaLink(l) + '</h2><p class="card__org">' + esc(l.org) + '</p><div class="tags"><span class="tag tag--' + l.cat + '">' + A.cat(l.cat).name + '</span><span class="tag">' + l.form + '</span><span class="tag">' + A.fee(l.fee) + '</span></div><p class="card__date">' + ic('calendar') + 'Tutup ' + A.dateAt(l.dl, false) + '</p></div>' + saveBtn(l, 'card__save') + '</article>';
   }
   var SORTS = {
@@ -298,7 +299,7 @@
     var author = A.stu(t.author), isAuthor = t.author === A.S.me, liked = t.likes.indexOf(A.S.me) !== -1;
     function reply(r) {
       var s = A.stu(r.author), kids = t.replies.filter(function (x) { return x.parent === r.id; }), rl = r.likes.indexOf(A.S.me) !== -1;
-      return '<div class="reply' + (r.best ? ' reply--best' : '') + '"><div class="reply__head">' + A.avatar(s) + '<strong>' + A.name(s) + '</strong>' + roleText(s) + (r.best ? '<span class="best-label">' + ic('circle-check') + 'Jawaban terbaik</span>' : '') + '</div>' +
+      return '<div class="reply' + (r.best ? ' reply--best' : '') + '"><div class="reply__head">' + A.avatar(s) + '<strong>' + A.name(s) + '</strong>' + roleText(s) + (r.best ? A.sticker('Jawaban terbaik', 'best-label') : '') + '</div>' +
         '<p class="reply__body">' + esc(r.body) + '</p><div class="reply__actions"><button class="btn btn--quiet" type="button" aria-pressed="' + rl + '" data-act="like-reply" data-id="' + t.id + ':' + r.id + '">' + ic('heart') + r.likes.length + '</button>' +
         '<button class="btn btn--quiet" type="button" data-act="reply-to" data-id="' + t.id + ':' + r.id + '">' + ic('reply') + 'Balas</button>' +
         (isAuthor && !r.best && !r.parent ? '<button class="btn btn--quiet" type="button" data-act="mark-best" data-id="' + t.id + ':' + r.id + '">' + ic('circle-check') + 'Tandai terbaik</button>' : '') +
@@ -335,7 +336,7 @@
 
   function profileView(s, mode) {
     var own = mode === 'own', viewer = A.S.me, mate = teammates(viewer, s.id);
-    var photo = s.photo ? '<span class="avatar avatar--l avatar--photo" style="background-image:url(' + s.photo + ')"></span>' : '<span class="avatar avatar--l av--' + s.av + '">' + s.ini + '</span>';
+    var photo = A.print(s, 'profile__print');
     var mine = A.entriesOf(s.id);
     var wins = mine.filter(function (e) { return e.status === 'verified' && A.isWin(e); });
     /* others never see private results (not passed, withdrew) or unverified claims */
@@ -343,7 +344,7 @@
     var sec = {
       about: s.bio ? '<p>' + esc(s.bio) + '</p>' : '',
       prestasi: wins.length ? '<div class="achv-list">' + wins.map(function (e) {
-        return '<a class="achv" href="#prestasi" data-act="view-entry" data-id="' + e.id + '"><span class="achv__icon">' + ic('medal') + '</span><div><strong>' + esc(A.resLabel(e) + ', ' + e.title) + '</strong><div class="small muted">' + esc(e.level) + ', ' + A.dateAt(e.d) + '</div></div><span class="verified">' + ic('badge-check') + 'Terverifikasi OSIS</span></a>';
+        return '<a class="achv" href="#prestasi" data-act="view-entry" data-id="' + e.id + '">' + A.sticker(A.resLabel(e)) + '<div><strong>' + esc(e.title) + '</strong><div class="small muted">' + esc(e.level) + ', ' + A.dateAt(e.d) + '</div></div></a>';
       }).join('') + '</div>' : '',
       riwayat: hist.length ? '<div class="history">' + hist.map(function (e) {
         var showRes = own || e.status === 'verified';
@@ -359,7 +360,7 @@
       tautan: '<div class="links">' + (s.linkedin && s.showLinkedin ? '<div class="links__row"><span>' + ic('linkedin') + ' LinkedIn</span><span class="link">' + esc(s.linkedin) + '</span></div>' : '') +
         ((own || mate) && s.wa ? '<div class="links__row"><span>' + ic('phone') + ' WhatsApp</span><span class="link">' + esc(s.wa) + '</span></div>' : '') + '</div>'
     };
-    var body = s.order.filter(function (k) { return s.hidden.indexOf(k) === -1 && sec[k]; }).map(function (k) { return '<section class="pblock"><h2>' + SECTIONS[k] + '</h2>' + sec[k] + '</section>'; }).join('');
+    var body = s.order.filter(function (k) { return s.hidden.indexOf(k) === -1 && sec[k]; }).map(function (k) { return '<section class="pblock pblock--' + k + '"><h2>' + SECTIONS[k] + '</h2>' + (k === 'prestasi' ? A.stamp('Diverifikasi OSIS', 'pblock__stamp') : '') + sec[k] + '</section>'; }).join('');
     var banner = s.bannerImg ? ' style="background-image:url(' + s.bannerImg + ')"' : '';
     var actions = own ? '<div class="profile__actions"><a class="btn btn--secondary" href="#orang" data-act="preview-self">' + ic('eye') + 'Pratinjau</a><a class="btn btn--primary" href="#profil-edit">' + ic('pencil') + 'Ubah profil</a></div>'
       : (mate ? '<div class="profile__actions"><span class="tag tag--ok">' + ic('users') + 'Satu tim</span></div>' : '');
@@ -385,7 +386,7 @@
   }
   V['profil-edit'] = function () {
     var s = A.me();
-    var photo = s.photo ? '<span class="avatar avatar--l avatar--photo" style="background-image:url(' + s.photo + ')"></span>' : '<span class="avatar avatar--l av--' + s.av + '">' + s.ini + '</span>';
+    var photo = A.print(s, 'print--s');
     return '<div class="container page edit-page"><header class="phead"><h1>Ubah profil</h1><div class="phead__actions"><a class="btn btn--secondary" href="#orang" data-act="preview-self">' + ic('eye') + 'Pratinjau</a><a class="btn btn--primary" href="#profil" data-act="done-edit">Selesai</a></div></header>' +
       '<div class="split edit"><div>' +
       '<section class="edit-card"><h2>Tampilan</h2><div class="edit-photo">' + photo + '<label class="btn btn--secondary">' + ic('camera') + 'Ganti foto<input type="file" accept="image/png,image/jpeg" data-act="photo" hidden></label>' + (s.photo ? '<button class="btn btn--quiet" type="button" data-act="photo-remove">Hapus</button>' : '') + '</div>' +

@@ -1,0 +1,236 @@
+/* Desk layer (2026-11-26): the student app in the "tactile editorial" philosophy (docs/design-philosophy.md).
+ * Public = the wall, app = the desk. Same materials as the wall: paper, ink, crest orange; sheets you can touch,
+ * stickers for wins, the crest as a stamp, prints for faces, buttons that press down. Loaded after site-admin.css. */
+
+:root {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --sheet-shadow: 0 1px 0 oklch(84% 0.009 78), 0 10px 24px -16px oklch(25% 0.02 265 / 0.35);
+  --print-shadow: 0 1px 2px oklch(25% 0.02 265 / 0.12), 0 14px 28px -12px oklch(25% 0.02 265 / 0.38);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ======================================================================
+   MATERIALS (unscoped: the public result page and admin use them too)
+   ====================================================================== */
+
+/* sticker: die-cut white outline, flat colour, a slight tilt. Only for things worth celebrating. */
+.sticker {
+  --tilt: -3deg;
+  display: inline-block; flex: none; width: max-content; max-width: 100%;
+  padding: 5px 12px 6px; border-radius: 9px;
+  background: var(--color-accent); color: var(--color-ink);
+  font: italic 400 1.35rem/1.05 var(--font-display); letter-spacing: -0.005em; white-space: nowrap;
+  box-shadow: 0 0 0 3px oklch(100% 0 0), 0 3px 8px -2px oklch(25% 0.02 265 / 0.35);
+  rotate: var(--tilt);
+}
+.sticker--ink { background: var(--color-ink); color: var(--color-surface); font: 700 0.75rem/1 var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; padding: 6px 10px; }
+:nth-child(2n) > .sticker, .sticker:nth-child(2n) { --tilt: 2.5deg; }
+:nth-child(3n) > .sticker { --tilt: -1.5deg; }
+
+/* stamp: the school crest inked onto the page, with its words around the ring */
+.stamp-seal {
+  --tilt: -9deg;
+  position: relative; display: inline-grid; place-items: center; flex: none;
+  width: 92px; aspect-ratio: 1; color: var(--color-accent-deep);
+  rotate: var(--tilt); opacity: 0.9; mix-blend-mode: multiply; pointer-events: none;
+}
+.stamp-seal svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.stamp-seal text { font-family: var(--font-body); }
+.stamp-seal__crest { position: relative; width: 50%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; filter: saturate(0.85) contrast(1.05); }
+.stamp-seal__crest img { display: block; height: 100%; width: auto; max-width: none; }
+
+/* print: a photo (or a stand-in) with a white border, a soft shadow and a slight tilt; it lifts and straightens on hover */
+.print {
+  --tilt: -2.5deg;
+  position: relative; display: inline-grid; place-items: center; flex: none;
+  width: 140px; aspect-ratio: 4 / 5; padding: 7px 7px 22px; box-sizing: border-box;
+  background: oklch(99.6% 0.002 80); border-radius: 3px; box-shadow: var(--print-shadow);
+  rotate: var(--tilt); transition: rotate 380ms var(--spring), translate 380ms var(--spring), box-shadow 380ms var(--ease-out);
+}
+.print > img, .print > span { width: 100%; height: 100%; border-radius: 1px; }
+.print > img { object-fit: cover; display: block; }
+.print--ini > span { display: grid; place-items: center; background: var(--color-paper-2); font: italic 400 3rem/1 var(--font-display); color: var(--color-ink-2); }
+.print:hover { rotate: 0deg; translate: 0 -4px; box-shadow: 0 2px 3px oklch(25% 0.02 265 / 0.1), 0 22px 36px -14px oklch(25% 0.02 265 / 0.4); }
+.print--s { width: 88px; padding: 5px 5px 14px; }
+.print--s.print--ini > span { font-size: 1.9rem; }
+
+/* the public result page signs off with the stamp */
+.result-page__foot .result-page__stamp { width: 104px; margin: -12px 0 -12px -6px; }
+
+/* ======================================================================
+   THE DESK (student app and login only)
+   ====================================================================== */
+html:has(> body:is([data-kind="siswa"], [data-kind="auth"])) { background: var(--color-paper) var(--grain); }
+:is(body[data-kind="siswa"], body[data-kind="auth"]) {
+  background-color: var(--color-paper);
+  background-image: var(--grain);
+
+  /* ---------- buttons press down ---------- */
+  .btn { --edge: var(--color-rule-2); border-radius: var(--radius-pill); box-shadow: 0 2px 0 var(--edge); transition: background-color 160ms var(--ease-out), border-color 160ms, color 160ms, translate 90ms var(--ease-out), box-shadow 90ms var(--ease-out); }
+  .btn:active:not(:disabled) { transform: none; translate: 0 2px; box-shadow: 0 0 0 var(--edge); }
+  .btn--primary { --edge: var(--color-accent-deep); background: var(--color-accent); color: var(--color-ink); border-color: var(--color-accent-deep); }
+  .btn--primary:hover { background: var(--color-accent-hover); color: var(--color-ink); }
+  .btn--secondary { --edge: var(--color-ink-2); background: var(--color-surface); border: 1.5px solid var(--color-ink-2); color: var(--color-ink); }
+  .btn--secondary:hover { background: var(--color-paper-2); border-color: var(--color-ink); }
+  .btn--quiet { box-shadow: none; }
+  .btn--quiet:active:not(:disabled) { box-shadow: none; }
+  .btn:disabled { box-shadow: none; }
+
+  /* chips and tabs: rounded, chunky, the pressed one sits down */
+  .chip { --edge: var(--color-rule-2); min-height: 36px; padding-inline: 14px; border: 1.5px solid var(--color-rule-2); border-radius: var(--radius-pill); background: var(--color-surface); box-shadow: 0 2px 0 var(--edge); font-weight: 600; transition: translate 90ms var(--ease-out), box-shadow 90ms var(--ease-out), background-color 160ms, color 160ms; }
+  .chip:hover:not(:disabled) { border-color: var(--color-ink-2); }
+  .chip[aria-pressed="true"] { --edge: var(--color-ink); background: var(--color-ink); border-color: var(--color-ink); color: var(--color-surface); translate: 0 2px; box-shadow: 0 0 0 var(--edge); }
+  .chip:disabled { box-shadow: none; }
+  .save, .card__save { border: 1.5px solid var(--color-rule-2); background: var(--color-surface); box-shadow: 0 2px 0 var(--color-rule-2); transition: translate 90ms, box-shadow 90ms; }
+  .save:active, .card__save:active { translate: 0 2px; box-shadow: none; }
+  .save[aria-pressed="true"], .card__save[aria-pressed="true"] { color: var(--color-accent-deep); border-color: var(--color-accent); }
+
+  /* switches: a knob with a little weight */
+  .switch span { background: var(--color-paper-3); border: 1.5px solid var(--color-rule-2); }
+  .switch span::after { top: 2px; left: 2px; background: var(--color-surface); border: 1.5px solid var(--color-rule-2); box-shadow: 0 2px 0 var(--color-rule-2); }
+  .switch input:checked + span { background: var(--color-accent); border-color: var(--color-accent-deep); }
+  .switch input:checked + span::after { border-color: var(--color-accent-deep); box-shadow: 0 2px 0 var(--color-accent-deep); }
+
+  /* ---------- category marks: a dot or a thin edge, never a fill ---------- */
+  [data-cat="sains"] { --cat: var(--cat-sains); } [data-cat="esai"] { --cat: var(--cat-esai); } [data-cat="debat"] { --cat: var(--cat-debat); }
+  [data-cat="tek"] { --cat: var(--cat-tek); } [data-cat="seni"] { --cat: var(--cat-seni); }
+  .dot { width: 7px; height: 7px; margin-right: 7px; vertical-align: 1px; }
+  .subj { display: inline-flex; align-items: center; gap: 6px; background: var(--color-surface); }
+  .subj::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--subj, var(--color-muted)); }
+  .subj--mat, .subj--fis, .subj--kim, .subj--bio { --subj: var(--cat-sains); }
+  .subj--bin { --subj: var(--cat-esai); } .subj--big { --subj: var(--cat-debat); } .subj--osis { --subj: var(--color-accent); }
+
+  /* ---------- sheets: white paper on the desk ---------- */
+  .card, .pcard, .ann, .joinbox, .well, .home .well--invite { background: var(--color-surface); border: 1px solid var(--color-rule); border-radius: 4px; box-shadow: var(--sheet-shadow); }
+  .empty { border-radius: 4px; border-style: dashed; background: transparent; }
+
+  /* page titles: the serif voice */
+  .phead h1, .home-head h1 { letter-spacing: -0.02em; }
+  .section-title h2, .section-title h3 { font-size: 1.75rem; }
+
+  /* ---------- masuk ---------- */
+  .auth__form { position: relative; padding: 40px 40px 36px; background: var(--color-surface); border: 1px solid var(--color-rule); border-radius: 4px; box-shadow: var(--sheet-shadow); max-width: 440px; overflow: visible; }
+  .auth__form::after { content: ""; position: absolute; right: -46px; top: -46px; width: 132px; height: 132px; border-radius: 50%; background: url("img/adzkia-logo.png") left center / auto 100% no-repeat; opacity: 0.16; rotate: 12deg; mix-blend-mode: multiply; pointer-events: none; filter: grayscale(0.3); }
+  .auth__brand { margin-bottom: 40px; }
+  .otp__boxes i { border-radius: 8px; border-width: 1.5px; box-shadow: 0 2px 0 var(--color-rule); }
+
+  /* ---------- beranda ---------- */
+  .home .home-head { border-bottom: 0; margin-bottom: 20px; padding-bottom: 0; }
+  .home .home-top { gap: 40px; }
+  /* the next deadline: the page's one solid orange sheet */
+  .feature { background: var(--color-accent) var(--grain); color: var(--color-ink); border-radius: 4px; box-shadow: 0 2px 0 var(--color-accent-deep), 0 22px 40px -24px oklch(45% 0.15 44 / 0.7); padding: 40px 44px; gap: 44px; }
+  .feature__days { color: var(--color-ink); font-size: 0.9375rem; font-weight: 600; }
+  .feature .figure { color: var(--color-ink); font-size: clamp(6.5rem, 11vw, 9.5rem); line-height: 0.8; letter-spacing: -0.04em; }
+  .feature h2 { font: 400 clamp(2rem, 3vw, 2.6rem)/1.05 var(--font-display); letter-spacing: -0.012em; color: var(--color-ink); max-width: 20ch; }
+  .feature h2 a:hover { text-decoration-color: var(--color-ink); }
+  .feature p { color: var(--color-ink-2); }
+  .feature .tag--dark { color: var(--color-ink); border-color: oklch(21% 0.018 265 / 0.35); background: transparent; }
+  .feature .btn--primary { --edge: oklch(8% 0.01 265); background: var(--color-ink); color: var(--color-surface); border-color: var(--color-ink); }
+  .feature .btn--primary:hover { background: var(--color-ink-2); color: var(--color-surface); }
+  .feature .btn--dark { --edge: oklch(21% 0.018 265 / 0.5); background: transparent; border: 1.5px solid var(--color-ink); color: var(--color-ink); box-shadow: 0 2px 0 var(--edge); }
+  .feature .btn--dark:hover { background: oklch(21% 0.018 265 / 0.08); }
+  .home .well--invite { padding: 20px 22px; }
+  /* OSIS announcements: notes pinned to the board, the official one stamped */
+  .home .anns__row { border-top: 0; gap: 24px; padding-top: 8px; }
+  .home .ann, .home .ann--pinned, .ann-list .ann { position: relative; padding: 22px 22px 18px; background: var(--color-surface); border: 1px solid var(--color-rule); border-radius: 2px; box-shadow: var(--sheet-shadow); }
+  .home .ann::before { content: ""; position: absolute; top: -7px; left: 50%; width: 13px; height: 13px; margin-left: -6px; border-radius: 50%; background: var(--color-accent); box-shadow: inset -2px -2px 0 var(--color-accent-deep), 0 2px 3px oklch(25% 0.02 265 / 0.35); }
+  .home .ann:nth-child(1) { rotate: -0.8deg; } .home .ann:nth-child(2) { rotate: 0.6deg; } .home .ann:nth-child(3) { rotate: -0.4deg; }
+  .ann__stamp { position: absolute; right: 12px; top: -26px; width: 78px; --tilt: 11deg; }
+  .ann-list { display: grid; gap: 20px; }
+  /* rows on the desk: compact, a category dot leads the line */
+  .row__days .figure { font-size: 2.4rem; letter-spacing: -0.03em; }
+  .famerow { align-items: center; }
+  .famerow__res { font: inherit; }
+  .famerow .sticker { font-size: 1.5rem; }
+  .teamcard__avatars .avatar { box-shadow: 0 0 0 2px var(--color-paper); }
+
+  /* ---------- info lomba ---------- */
+  .card { position: relative; border-top: 3px solid var(--cat, var(--color-rule-2)); transition: translate 260ms var(--spring), box-shadow 260ms var(--ease-out); }
+  .card:hover { transform: none; translate: 0 -3px; box-shadow: 0 1px 0 var(--color-rule-2), 0 18px 32px -18px oklch(25% 0.02 265 / 0.45); }
+  .card__days .figure { font-size: 3rem; letter-spacing: -0.03em; }
+  .card__joined { position: absolute; z-index: 4; top: -11px; left: 16px; --tilt: -5deg; }
+  .tab[aria-pressed="true"] { box-shadow: inset 0 -3px 0 var(--color-accent); }
+
+  /* ---------- detail lomba ---------- */
+  .detail-deadline { background: var(--color-surface) !important; border: 1px solid var(--color-rule); border-top: 3px solid var(--color-accent); border-radius: 4px; padding: 18px 20px 16px; box-shadow: var(--sheet-shadow); }
+  .detail-deadline .figure { font-size: 3.75rem; letter-spacing: -0.03em; }
+  .joinbox { position: relative; }
+  .joinbox__win { display: flex; align-items: center; gap: 14px; margin: 10px 0 6px; }
+  .joinbox__win .sticker { font-size: 1.75rem; }
+  .joinbox__stamp { position: absolute; right: -16px; top: -4px; width: 80px; --tilt: 12deg; }
+  .joinbox .btn--quiet { justify-content: flex-start; text-align: left; padding-inline: 4px; }
+
+  /* ---------- partner ---------- */
+  .pcard { padding: 22px; }
+  .slots__dots i { width: 18px; height: 8px; border-radius: 4px; background: var(--color-paper-3); box-shadow: inset 0 -1px 0 var(--color-rule-2); }
+  .slots__dots i.on { background: var(--color-accent); box-shadow: inset 0 -2px 0 var(--color-accent-deep); }
+
+  /* ---------- forum ---------- */
+  .reply--best { border-left: 3px solid var(--color-accent) !important; }
+  .reply__head .best-label { font-size: 1.05rem; margin-left: 6px; }
+
+  /* ---------- team chat: paper slips ---------- */
+  .msg:not(.msg--me) .msg__body { display: block; background: none; border: 0; padding: 0; border-radius: 0; }
+  .msg__main > .msg__bubble { width: fit-content; }
+  .msg__bubble .file { margin-top: 8px; }
+  .msg__bubble { background: var(--color-surface); border: 1px solid var(--color-rule); border-radius: 3px 12px 12px 12px; padding: 10px 14px; box-shadow: 0 1px 0 var(--color-rule-2); }
+  .msg--me .msg__bubble { background: var(--color-peach, oklch(94.6% 0.03 62)); border-color: oklch(88% 0.05 62); border-radius: 12px 3px 12px 12px; }
+
+  /* ---------- notifikasi ---------- */
+  .note--unread { box-shadow: inset 3px 0 0 var(--color-accent); padding-left: 14px; }
+  .note--unread .note__text { font-weight: 600; }
+
+  /* ---------- profile: your photo as a print, wins as stickers, the section stamped ---------- */
+  .profile__banner, .profile__banner[class*="banner--"] { border-radius: 4px; background-color: var(--color-paper-2); background-image: var(--grain); box-shadow: inset 0 0 0 1px var(--color-rule); }
+  .profile__id { margin-top: -96px; }
+  .profile__print { width: 168px; --tilt: -3.5deg; margin-bottom: 8px; }
+  .pblock--prestasi { position: relative; }
+  .pblock__stamp { position: absolute; right: 4px; top: 4px; width: 96px; }
+  .achv-list { gap: 4px; }
+  .achv { grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: center; padding: 12px 0; text-decoration: none; color: inherit; }
+  .achv strong { font-size: 1.0625rem; }
+  .achv:hover strong { text-decoration: underline; text-underline-offset: 0.15em; }
+  .achv .sticker { justify-self: start; }
+  .history__row { grid-template-columns: 12px minmax(0, 1fr) auto; }
+  .skill .btn { min-height: 36px; }
+  .profile .tags .tag { border-width: 1.5px; font-weight: 600; }
+
+  /* ---------- ubah profil ---------- */
+  .edit-photo .print { margin-right: 8px; }
+
+  /* ---------- phone ---------- */
+  @media (max-width: 60rem) {
+    .profile__id { margin-top: -84px; }
+  }
+  @media (max-width: 44rem) {
+    .feature { padding: 26px 22px 24px; gap: 14px; }
+    .feature .figure { font-size: 6rem; }
+    .feature h2 { font-size: 1.75rem; }
+    .home .ann:nth-child(n) { rotate: none; }
+    .ann__stamp { width: 64px; top: -18px; }
+    .profile__print { width: 128px; }
+    .profile__id { margin-top: -72px; }
+    .pblock__stamp { width: 74px; top: 0; }
+    .achv { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .joinbox__stamp { right: -6px; width: 70px; }
+    .auth__form { padding: 28px 22px; }
+    .auth__form::after { right: -14px; top: -40px; width: 96px; height: 96px; }
+    .card__joined { top: -10px; left: auto; right: 52px; }
+  }
+
+  /* ---------- motion: once per screen, physical; reduced-motion skips it all (see core.js) ---------- */
+  .is-settling :is(.feature, .well--invite, .ann, .card, .pcard, .joinbox, .detail-deadline, .print, .msg, .thread, .row, .achv, .note, .famerow) { animation: settle 620ms var(--spring) both; }
+  .is-settling :is(.ann, .card, .pcard, .row, .thread, .note, .achv, .msg):nth-child(2) { animation-delay: 50ms; }
+  .is-settling :is(.ann, .card, .pcard, .row, .thread, .note, .achv, .msg):nth-child(3) { animation-delay: 100ms; }
+  .is-settling :is(.ann, .card, .pcard, .row, .thread, .note, .achv, .msg):nth-child(4) { animation-delay: 150ms; }
+  .is-settling :is(.ann, .card, .pcard, .row, .thread, .note, .achv, .msg):nth-child(n+5) { animation-delay: 200ms; }
+  .is-settling .sticker { animation: slap 560ms var(--spring) 260ms both; }
+  .is-settling .stamp-seal { animation: thud 420ms var(--ease-out) 380ms both; }
+}
+
+@keyframes settle { from { opacity: 0; translate: 0 14px; scale: 0.985; } }
+@keyframes slap { from { opacity: 0; scale: 1.5; rotate: calc(var(--tilt) - 10deg); } 70% { opacity: 1; } }
+@keyframes thud { from { opacity: 0; scale: 1.35; } 60% { opacity: 0.95; scale: 0.97; } }
+@media (prefers-reduced-motion: reduce) {
+  .print, .card, .btn, .chip { transition: none; }
+}

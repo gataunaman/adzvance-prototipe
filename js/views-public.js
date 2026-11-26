@@ -90,7 +90,7 @@
       '<dl class="result-page__facts"><div><dt>Tingkat</dt><dd>' + esc(e.level) + '</dd></div><div><dt>Penyelenggara</dt><dd>' + esc(e.org) + '</dd></div><div><dt>Tanggal</dt><dd>' + A.dateAt(e.d) + '</dd></div></dl>' +
       (e.photo ? '<figure class="result-page__photo"><img src="' + e.photo + '" alt=""></figure>' : '') +
       team(e) + path(e) +
-      '<div class="result-page__foot"><span class="stamp"><span class="crest"><img src="img/adzkia-logo.png" alt=""></span>Diverifikasi OSIS</span>' +
+      '<div class="result-page__foot">' + A.stamp('Diverifikasi OSIS', 'result-page__stamp') +
       '<span class="result-page__actions"><button class="pub-btn pub-btn--quiet" type="button" data-act="share-entry" data-id="' + e.id + '">' + ic('share-2') + 'Bagikan</button>' +
       (A.S.me ? '<button class="pub-btn pub-btn--quiet" type="button" data-act="report-entry" data-id="' + e.id + '">' + ic('flag') + (member ? 'Koreksi' : 'Laporkan') + '</button>' : '') + '</span></div></div></div></article>';
   };
