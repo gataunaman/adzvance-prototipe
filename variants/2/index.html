@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADZVANCE</title>
+<meta name="description" content="Lomba untuk siswa SMA Islam Plus Adzkia Medan.">
+<meta name="theme-color" content="#12322A">
+<link rel="icon" href="../../img/adzkia-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#view">Langsung ke isi</a>
+
+<!-- Desktop rail -->
+<nav class="rail" aria-label="Utama">
+  <a class="crest" href="#beranda" aria-label="ADZVANCE, beranda"><img src="../../img/adzkia-logo.png" alt=""></a>
+  <div class="rail-nav">
+    <a href="#beranda" data-nav="beranda"><span class="ni"><i data-lucide="house"></i></span>Beranda</a>
+    <a href="#lomba" data-nav="lomba"><span class="ni"><i data-lucide="flag"></i></span>Lomba</a>
+    <a href="#wall" data-nav="wall"><span class="ni"><i data-lucide="award"></i></span>Wall</a>
+    <a href="#profil" data-nav="profil"><span class="ni"><i data-lucide="user-round"></i></span>Profil</a>
+  </div>
+  <span class="wordmark rail-word" aria-hidden="true">ADZVANCE</span>
+  <button class="bell" type="button" data-bell aria-label="Notifikasi, 3 baru" aria-expanded="false"><i data-lucide="bell"></i><span class="bell-n">3</span></button>
+</nav>
+
+<!-- Phone top bar -->
+<header class="topbar">
+  <a class="tb-brand" href="#beranda"><span class="crest crest-sm"><img src="../../img/adzkia-logo.png" alt=""></span><span class="wordmark">ADZVANCE</span></a>
+  <button class="bell" type="button" data-bell aria-label="Notifikasi, 3 baru" aria-expanded="false"><i data-lucide="bell"></i><span class="bell-n">3</span></button>
+</header>
+
+<main id="view" class="board" tabindex="-1"></main>
+
+<!-- Phone chalk tray -->
+<nav class="tray" aria-label="Utama">
+  <a href="#beranda" data-nav="beranda"><span class="ni"><i data-lucide="house"></i></span>Beranda</a>
+  <a href="#lomba" data-nav="lomba"><span class="ni"><i data-lucide="flag"></i></span>Lomba</a>
+  <a href="#wall" data-nav="wall"><span class="ni"><i data-lucide="award"></i></span>Wall</a>
+  <a href="#profil" data-nav="profil"><span class="ni"><i data-lucide="user-round"></i></span>Profil</a>
+</nav>
+
+<div class="notif" id="notif" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

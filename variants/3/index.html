@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADZVANCE</title>
+<meta name="description" content="Lomba untuk siswa SMA Islam Plus Adzkia Medan.">
+<meta name="theme-color" content="#17233F">
+<link rel="icon" href="../../img/adzkia-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#isi">Langsung ke isi</a>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#beranda" aria-label="ADZVANCE, beranda">
+      <span class="crest" aria-hidden="true"></span>
+      <span class="brand-word">ADZVANCE</span>
+    </a>
+    <nav class="nav" aria-label="Utama">
+      <a href="#beranda" data-nav="beranda">Beranda</a>
+      <a href="#lomba" data-nav="lomba">Lomba</a>
+      <a href="#wall" data-nav="wall">Wall of Fame</a>
+      <a href="#profil" data-nav="profil">Profil</a>
+    </nav>
+    <div class="top-tools">
+      <div class="notif">
+        <button class="icon-btn" id="bell" aria-expanded="false" aria-controls="notif-panel" aria-label="Notifikasi">
+          <i data-lucide="bell"></i><span class="bell-count" id="bell-count"></span>
+        </button>
+        <div class="notif-panel" id="notif-panel" hidden></div>
+      </div>
+      <a class="me" href="#profil" aria-label="Profil saya">RP</a>
+    </div>
+  </div>
+</header>
+
+<main id="isi" tabindex="-1"><div id="view"></div></main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <img src="../../img/adzkia-logo.png" alt="SMA Islam Plus Adzkia Medan" width="176" height="52">
+    <p>Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk siswa-siswinya.</p>
+    <p class="foot-small">&copy; 2026 ADZVANCE</p>
+  </div>
+</footer>
+
+<nav class="tabbar" aria-label="Utama">
+  <a href="#beranda" data-nav="beranda"><i data-lucide="house"></i><span>Beranda</span></a>
+  <a href="#lomba" data-nav="lomba"><i data-lucide="flag"></i><span>Lomba</span></a>
+  <a href="#wall" data-nav="wall"><i data-lucide="award"></i><span>Wall</span></a>
+  <a href="#profil" data-nav="profil"><i data-lucide="user-round"></i><span>Profil</span></a>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

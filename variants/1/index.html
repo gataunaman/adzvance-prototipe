@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADZVANCE</title>
+<meta name="description" content="Lomba untuk siswa SMA Islam Plus Adzkia Medan.">
+<meta name="theme-color" content="#7A1430">
+<link rel="icon" href="../../img/adzkia-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Shrikhand&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="v1.css">
+</head>
+<body>
+<a class="skip" href="#app">Lewati ke isi</a>
+
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#beranda" aria-label="ADZVANCE, beranda">
+      <span class="crest"><img src="../../img/adzkia-logo.png" alt=""></span>
+      <span class="brand-word">Adzvance</span>
+    </a>
+    <nav class="nav" aria-label="Utama">
+      <a href="#beranda" data-nav="beranda">Beranda</a>
+      <a href="#lomba" data-nav="lomba">Lomba</a>
+      <a href="#wall" data-nav="wall">Wall of Fame</a>
+      <a href="#profil" data-nav="profil">Profil</a>
+    </nav>
+    <div class="top-tools">
+      <div class="bell-wrap">
+        <button class="bell" type="button" data-act="bell" aria-expanded="false" aria-controls="notifs" aria-label="Notifikasi">
+          <i data-lucide="bell"></i><span class="bell-count" id="bellCount"></span>
+        </button>
+        <div class="notifs" id="notifs" hidden></div>
+      </div>
+      <a class="me-chip" href="#profil" aria-label="Profil saya"><span class="av av-c-fuchsia av-sm">RP</span></a>
+    </div>
+  </div>
+</header>
+
+<main id="app" tabindex="-1"></main>
+
+<footer class="foot">
+  <div class="rebung-up" aria-hidden="true"></div>
+  <div class="foot-band">
+    <div class="wrap foot-row">
+      <img class="foot-logo" src="../../img/adzkia-logo.png" alt="SMA Islam Plus Adzkia Medan">
+      <p>Website ini dikelola oleh OSIS SMA Islam Plus Adzkia Medan untuk siswanya.</p>
+      <nav class="foot-links" aria-label="Lainnya"><a href="#wall">Wall of Fame</a><a href="#beranda">Tentang kami</a><a href="#beranda">Kebijakan privasi</a></nav>
+    </div>
+  </div>
+</footer>
+
+<nav class="tabbar" aria-label="Navigasi bawah">
+  <a href="#beranda" data-nav="beranda"><i data-lucide="house"></i><span>Beranda</span></a>
+  <a href="#lomba" data-nav="lomba"><i data-lucide="flag"></i><span>Lomba</span></a>
+  <a href="#wall" data-nav="wall"><i data-lucide="award"></i><span>Wall</span></a>
+  <a href="#profil" data-nav="profil"><i data-lucide="user-round"></i><span>Profil</span></a>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="v1.js"></script>
+</body>
+</html>
